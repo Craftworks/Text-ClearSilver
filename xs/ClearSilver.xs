@@ -182,7 +182,7 @@ CODE:
                 croak("Source must be a scalar reference or a filename, not %"SVf, src);
             }
             pv   = SvPV_const(SvRV(src), len);
-            buff = malloc(len);
+            buff = (char*)malloc(len);
             if(!buff) {
                 croak("ClearSilver: out of memory");
             }
