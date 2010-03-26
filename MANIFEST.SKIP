@@ -26,3 +26,5 @@ nytprof/
 
 Text-ClearSilver-
 ppport\.h$
+
+*.gz

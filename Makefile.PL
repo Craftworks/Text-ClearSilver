@@ -12,13 +12,14 @@ test_requires 'Test::More' => 0.88; # done_testing()
 test_requires 'Test::Requires';
 
 unless(grep { $_ eq '--no-build-cs' } @ARGV){
+    system $^X, 'tool/get_cs.pl' if not -e 'clearsilver';
     system $^X, 'tool/build_cs.pl';
 }
 
 cc_src_paths qw(xs);
 
-cc_include_paths qw(src src/util src/cgi src/cs);
-cc_append_to_libs [ neo_cs => 'src/libs' ],
+cc_include_paths qw(clearsilver clearsilver/util clearsilver/cgi clearsilver/cs);
+cc_append_to_libs [ neo_cs => 'clearsilver/libs' ],
     qw(neo_utl neo_cgi z);
 
 tests_recursive 't', 't/*';
@@ -32,9 +33,7 @@ clean_files qw(
     cover_db
 );
 
-realclean_files
-    map  { "src/*/*$_" }
-    grep { $_ } @Config{qw(_o _a _exe)};
+realclean_files 'clearsilver';
 
 WriteAll(check_nmake => 0);
 

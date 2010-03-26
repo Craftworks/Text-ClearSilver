@@ -15,7 +15,7 @@ my @configure_args = qw(
     --enable-gettext
 );
 
-chdir 'src';
+chdir 'clearsilver';
 
 # for configure
 $ENV{CC}      = $Config{cc};
