@@ -1,0 +1,34 @@
+# typemap for Text::ClearSilver
+
+Text::ClearSilver::HDF	T_TCS_PTR
+Text::ClearSilver::CS	T_TCS_PTR
+Text__ClearSilver__HDF	T_TCS_PTR
+Text__ClearSilver__CS	T_TCS_PTR
+NEOERR*					T_TCS_NEOERR
+
+SV*volatile				T_SV
+
+#############################################################################
+INPUT
+T_TCS_PTR
+    STMT_START {
+        SV* const xsub_arg = $arg;
+        if (SvROK(xsub_arg) && sv_derived_from(xsub_arg, \"${ntype}\")) {
+            UV const tmp = SvUV((SV*)SvRV(xsub_arg));
+            $var = INT2PTR($type, tmp);
+        }
+        else {
+            Perl_croak(aTHX_ \"%s: %s is not of type %s\",
+                ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                \"$var\", \"$ntype\");
+        }
+    } STMT_END
+
+#############################################################################
+OUTPUT
+T_TCS_PTR
+    if($var){
+        sv_setref_pv($arg, \"${ntype}\", (void*)$var);
+    }
+T_TCS_NEOERR
+    CHECK_ERR($var);
