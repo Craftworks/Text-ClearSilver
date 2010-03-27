@@ -197,14 +197,20 @@ CODE:
 
 #endif
 
-Text::ClearSilver::HDF
-new(self, SV* arg = NULL)
+void
+new(SV* klass, SV* arg = NULL)
 CODE:
 {
-    RETVAL = tcs_new_hdf(aTHX_ arg);
+    SV* self;
+    if(SvROK(klass)){
+        croak("%s->new must be called as a class method", C_CS);
+    }
+
+    self = sv_newmortal();
+    sv_setref_pv(self, SvPV_nolen_const(klass), tcs_new_hdf(aTHX_ arg));
+    ST(0) = self;
+    XSRETURN(1);
 }
-OUTPUT:
-    RETVAL
 
 void
 hdf_DESTROY(Text::ClearSilver::HDF hdf)

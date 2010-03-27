@@ -65,6 +65,10 @@ CODE:
     HDF*     hdf;
     SV* hdf_sv;
 
+    if(SvROK(klass)){
+        croak("%s->new must be called as a class method", C_CS);
+    }
+
     self = sv_newmortal();
     if(sv_derived_from(hdf_src, C_HDF) && SvROK(hdf_src)) {
         hdf    = INT2PTR(HDF*, SvUV(SvRV(hdf_src)) );
@@ -89,9 +93,6 @@ CODE:
     */
     CHECK_ERR( cgi_register_strfuncs(cs) );
 
-    if(SvROK(klass)){
-        croak("%s->new must be called as a class method", C_CS);
-    }
     sv_setref_pv(self, SvPV_nolen_const(klass), cs);
 
     /* CS has a hdf */
