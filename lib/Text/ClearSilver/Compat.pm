@@ -35,7 +35,7 @@ sub sortObj {
 # Data::ClearSilver::HDF is a subclass of Text::ClearSilver::HDF
 @Data::ClearSilver::HDF::ISA = (__PACKAGE__);
 
-*HDF = \&new;
+*hdf = \&new;
 
 package Text::ClearSilver::CS;
 # ClearSilver::CS is a subclass of Text::ClearSilver::CS
