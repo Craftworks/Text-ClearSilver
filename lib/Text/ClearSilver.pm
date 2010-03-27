@@ -29,7 +29,7 @@ This document describes Text::ClearSilver version 0.001.
         TagStart      => 'cs',   # <?cs ... >
     );
 
-    my %vars => (
+    my %vars = (
         foo => 'bar',         # as var:foo
         baz => { qux => 42 }, # as var:baz.qux
     );
