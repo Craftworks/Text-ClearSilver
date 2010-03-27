@@ -3,6 +3,14 @@ use warnings;
 use inc::Module::Install;
 use Config;
 
+if(not -x '/bin/sh'){
+    warn <<'END_MSG';
+Text::ClearSilver requires /bin/sh for the configuration of
+ClearSilver engine, but it is not found on this system.
+END_MSG
+    exit(0);
+}
+
 all_from 'lib/Text/ClearSilver.pm';
 
 use_ppport 3.19;

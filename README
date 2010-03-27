@@ -1,4 +1,5 @@
-This is Perl module Text::ClearSilver.
+This is Perl module Text::ClearSilver, a Perl binding to the ClearSilver
+template engine.
 
 INSTALLATION
 
@@ -24,4 +25,3 @@ Text::ClearSilver documentation is available as in POD. So you can do:
 
 to read the documentation online with your favorite pager.
 
-Goro Fuji (gfx)

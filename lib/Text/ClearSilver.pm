@@ -77,16 +77,16 @@ L<Catalyst::View::ClearSilver>
 
 =head1 AUTHORS
 
-Craftworks (XXXX@XXXX)
+Craftworks E<lt>craftwork(at)cpan.orgE<gt>
 
 Goro Fuji (gfx) E<lt>gfuji(at)cpan.orgE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2010, XXXX. All rights reserved.
+Copyright (c) 2010, Craftworks. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. See L<perlartistic> for details.
+it under the same terms as Perl itself.
 
 This product includes ClearSilver developed by 
 Neotonic Software Corp.  (L<http://www.neotonic.com/>).
