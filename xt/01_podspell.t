@@ -13,6 +13,9 @@ $ENV{LANG} = 'C';
 all_pod_files_spelling_ok('lib');
 
 __DATA__
-Goro Fuji (gfx)
-gfuji(at)cpan.org
 Text::ClearSilver
+goro
+gfx
+Craftworks
+Neotonic
+cpan
