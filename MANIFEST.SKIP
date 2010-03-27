@@ -64,6 +64,17 @@ ppport\.h$
 
 \.gz$
 
-# in clearsilver/
-\.cgi$
-\.cso$
+# ClearSilver core products
+\bcgi_cstest$
+\bcs_static\.cgi$
+\bcs_static\.cso$
+[\\/]cs$
+\bcstest$
+\btest$
+\bcs_config.h$
+\.a$
+\.lib$
+\bconfig\.log$
+\bconfig\.status$
+\bMakefile\.depends$
+\brules\.mk$
