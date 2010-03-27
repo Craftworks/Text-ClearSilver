@@ -19,3 +19,6 @@ gfx
 Craftworks
 Neotonic
 cpan
+HDF
+CS
+filename

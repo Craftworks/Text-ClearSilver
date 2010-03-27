@@ -43,7 +43,31 @@ Text::ClearSilver is a Perl binding to the B<ClearSilver> template engine.
 
 =head2 Text::ClearSilver
 
-=head3 C<< Text::ClearSilver->new(%config) >>
+=head3 C<< Text::ClearSilver->new(%config | \%config) >>
+
+Creates a new Text::ClearSilver processor.
+
+Configuration parameters are:
+
+=over 4
+
+=item C<< VarEscapeMode => ( 'html' | 'js' | 'url' | 'none' ) >>
+
+=item C<< TagStart => $str >>
+
+=item C<< EnableAuditMode => $bool >>
+
+=back
+
+=head3 C<< $cs->process($source, $data, ?$output, %config) >>
+
+Processes a ClearSilver template. The first parameter, I<$source>, indicates
+the input template as a filename, filehandle, or scalar reference.
+The second, I<$data>, indicates template variables which may be a HDF data set,
+HASH reference, ARRAY reference. The result of process is printed to the
+optional third parameter, I<$output>, which may be a filename, filehandle,
+or scalar reference. If the third parameter is omitted, the default filehandle
+will be used. Optional I<%config> are the same as I<%config> of C<new()>.
 
 =head2 Text::ClearSilver::HDF
 
@@ -74,6 +98,8 @@ L<http://www.clearsilver.net/>
 L<Data::ClearSilver::HDF>
 
 L<Catalyst::View::ClearSilver>
+
+L<Template>
 
 =head1 AUTHORS
 
