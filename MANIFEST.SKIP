@@ -62,6 +62,8 @@ nytprof/
 Text-ClearSilver-
 ppport\.h$
 
+xs/.+\.c
+
 \.gz$
 
 # ClearSilver core products

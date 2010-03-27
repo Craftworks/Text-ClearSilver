@@ -1,3 +1,4 @@
+benchmark/simple.pl
 Changes
 clearsilver/acconfig.h
 clearsilver/aclocal.m4
@@ -431,9 +432,7 @@ Text-ClearSilver.h
 tool/build_cs.pl
 tool/get_cs.pl
 xs/ClearSilver.xs
-xs/CSPARSE.c
 xs/CSPARSE.xs
-xs/HDF.c
 xs/HDF.xs
 xs/typemap
 xt/01_podspell.t
