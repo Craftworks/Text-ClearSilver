@@ -75,7 +75,7 @@ foreach (1 .. 2){
     $cs = Text::ClearSilver::CS->new($hdf);
     $cs->parse_string("foo <?cs var:TopNode.2nd1.Entry3 ?> bar");
 
-    my $buff;
+    my $buff = '';
     open my($sout), '>', \$buff;
 
     $cs->render($sout);

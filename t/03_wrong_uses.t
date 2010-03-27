@@ -49,6 +49,12 @@ foreach my $method(Mouse::Meta::Class->initialize('Text::ClearSilver::CS')->get_
     isnt $@, '', "call $method as a class method";
 }
 
+eval {
+    my $cs = Text::ClearSilver::CS->new({ foo => 'bar' });
+    $cs->parse_string("<?cs var:foo"); # syntax error
+};
+like $@, qr/\b ParseError \b/xms;
+
 note "for Text::ClearSilver";
 
 eval {

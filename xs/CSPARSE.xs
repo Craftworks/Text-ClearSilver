@@ -134,13 +134,7 @@ CODE:
 {
     STRLEN len;
     const char* const str = SvPV_const(in_str, len);
-    char* const buff      = (char*)malloc(len);
-
-    if(!buff) {
-        croak("ClearSilver: out of memory");
-    }
-    Copy(str, buff, len + 1, char); /* with "\0" */
-    RETVAL = cs_parse_string(cs, buff, len);
+    RETVAL = tcs_parse_string(cs, str, len);
 }
 OUTPUT:
     RETVAL

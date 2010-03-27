@@ -10,6 +10,23 @@
 #define NO_XSLOCKS
 #include "Text-ClearSilver.h"
 
+NEOERR*
+tcs_parse_string (CSPARSE* const parse, const char* const str, size_t const str_len)
+{
+    /* ClearSilver can access ibuf out of range of memory :(
+       so extra some memory must be allocated.
+    */
+    static const size_t extra_memory = 10;
+    char* const ibuf = (char*)calloc(str_len + extra_memory, sizeof(char));
+    if(ibuf == NULL){
+        return nerr_raise (NERR_NOMEM,
+            "Unable to allocate memory");
+    }
+
+    memcpy(ibuf, str, str_len + 1); /* with '\0' */
+    return cs_parse_string(parse, ibuf, str_len);
+}
+
 void
 tcs_throw_error(pTHX_ NEOERR* const err) {
     SV* sv;
@@ -177,18 +194,13 @@ CODE:
         if(SvROK(src)){
             STRLEN len;
             const char* pv;
-            char* buff;
+
             if(SvTYPE(SvRV(src)) > SVt_PVMG){
                 croak("Source must be a scalar reference or a filename, not %"SVf, src);
             }
             pv   = SvPV_const(SvRV(src), len);
-            buff = (char*)malloc(len);
-            if(!buff) {
-                croak("ClearSilver: out of memory");
-            }
-            Copy(pv, buff, len + 1, char); /* with "\0" */
 
-            CHECK_ERR( cs_parse_string(cs, buff, len) );
+            CHECK_ERR(tcs_parse_string(cs, pv, len));
         }
         else {
             CHECK_ERR( cs_parse_file(cs, SvPV_nolen_const(src)) );

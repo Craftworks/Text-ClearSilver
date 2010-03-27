@@ -15,12 +15,15 @@ my @configure_args = qw(
     --enable-gettext
 );
 
+#xsystem('patch', 'clearsilver/cs/csparse.c', 'tool/csparse.patch');
+
 chdir 'clearsilver';
 
 # for configure
 $ENV{CC}      = $Config{cc};
 $ENV{CFLAGS}  = $Config{ccflags} . ' ' . $Config{optimize};
 $ENV{LDFLAGS} = $Config{ldflags};
+$ENV{LIBS}    = $Config{libs};
 
 xsystem('./configure', @configure_args);
 xsystem('make');

@@ -50,3 +50,7 @@ tcs_output_to_io(void* io, char* s);
 NEOERR*
 tcs_output_to_sv(void* io, char* s);
 
+/* clearsilver/cs/csparse.c */
+NEOERR*
+tcs_parse_string(CSPARSE* cs, const char* str, size_t str_len);
+
