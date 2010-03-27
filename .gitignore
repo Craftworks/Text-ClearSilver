@@ -11,7 +11,6 @@ Makefile*
 *blib
 META.yml
 inc/
-MANIFEST
 *.out
 *.bak
 ppport.h
