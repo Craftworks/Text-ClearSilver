@@ -99,24 +99,6 @@ tcs_sv2io(pTHX_ SV* sv, const char* const mode, int const imode, bool* const nee
     }
 }
 
-static void
-tcs_set_config(pTHX_ HDF* const hdf, HV* const config) {
-    SV** svp = hv_fetchs(config, "VarEscapeMode", FALSE);
-    if(svp && sv_true(*svp)){
-        hdf_set_value(hdf, "Config.VarEscapeMode", SvPV_nolen_const(*svp));
-    }
-
-    svp = hv_fetchs(config, "TagStart", FALSE);
-    if(svp && sv_true(*svp)){
-        hdf_set_value(hdf, "Config.TagStart", SvPV_nolen_const(*svp));
-    }
-
-    svp = hv_fetchs(config, "EnableAuditMode", FALSE);
-    if(svp && SvOK(*svp)){
-        hdf_set_int_value(hdf, "Config.EnableAuditMode", sv_true(*svp));
-    }
-}
-
 MODULE = Text::ClearSilver    PACKAGE = Text::ClearSilver
 
 PROTOTYPES: DISABLE
@@ -179,13 +161,20 @@ CODE:
     SvGETMAGIC(src);
 
     XCPT_TRY_START {
+        HDF* config = NULL;
+        SV** svp;
         ofp = tcs_sv2io(aTHX_ dest, "w", O_WRONLY|O_CREAT|O_TRUNC, &need_ofp_close);
 
         hdf = tcs_new_hdf(aTHX_ vars);
 
-        tcs_set_config(aTHX_ hdf, (HV*)SvRV(self));
+        CHECK_ERR( hdf_get_node(hdf, "Config", &config) );
+
+        svp = hv_fetchs((HV*)SvRV(self), "Config", FALSE);
+        if(svp){
+            tcs_hdf_add(aTHX_ config, *svp);
+        }
         if(args) {
-            tcs_set_config(aTHX_ hdf, args);
+            tcs_hdf_add(aTHX_ config, sv_2mortal(newRV_inc((SV*)args)));
         }
 
         CHECK_ERR( cs_init(&cs, hdf) );

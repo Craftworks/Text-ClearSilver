@@ -27,8 +27,10 @@ is $out, 'baz-', 'process with defout';
 
 
 $tcs = Text::ClearSilver->new(
-    VarEscapeMode => 'html',
-    TagStart      => 'tcs',
+    Config => {
+        VarEscapeMode => 'html',
+        TagStart      => 'tcs',
+    },
 );
 
 $out = '';
