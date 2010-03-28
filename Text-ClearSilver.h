@@ -54,3 +54,12 @@ tcs_output_to_sv(void* io, char* s);
 NEOERR*
 tcs_parse_string(CSPARSE* cs, const char* str, size_t str_len);
 
+/* MY_CXT stuff */
+typedef struct {
+    HV* functions;
+    SV* sort_cmp_cb;
+} my_cxt_t;
+
+my_cxt_t*
+tcs_get_my_cxtp(pTHX);
+

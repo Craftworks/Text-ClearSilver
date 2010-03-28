@@ -9,22 +9,17 @@
 
 #include "Text-ClearSilver.h"
 
-#define MY_CXT_KEY "Text::ClearSilver::HDF::_guts" XS_VERSION
-typedef struct {
-    SV* sort_cmp_cb;
-} my_cxt_t;
-START_MY_CXT;
 
 static int
 tcs_cmp(const void* const in_a, const void* const in_b) {
     dTHX;
-    dMY_CXT;
     dSP;
+    SV* const sort_cmp_cb = tcs_get_my_cxtp(aTHX)->sort_cmp_cb;
     SV* a;
     SV* b;
     int ret;
 
-    assert(MY_CXT.sort_cmp_cb);
+    assert(sort_cmp_cb);
 
     ENTER;
     SAVETMPS;
@@ -44,7 +39,7 @@ tcs_cmp(const void* const in_a, const void* const in_b) {
 
     PUTBACK;
 
-    call_sv(MY_CXT.sort_cmp_cb, G_SCALAR);
+    call_sv(sort_cmp_cb, G_SCALAR);
 
     SPAGAIN;
     ret = POPi;
@@ -178,25 +173,6 @@ MODULE = Text::ClearSilver::HDF    PACKAGE = Text::ClearSilver::HDF    PREFIX = 
 
 PROTOTYPES: DISABLE
 
-BOOT:
-{
-    MY_CXT_INIT;
-    MY_CXT.sort_cmp_cb = NULL;
-}
-
-#ifdef USE_ITHREADS
-
-void
-CLONE(...)
-CODE:
-{
-    MY_CXT_CLONE;
-    MY_CXT.sort_cmp_cb = NULL;
-    PERL_UNUSED_VAR(items);
-}
-
-#endif
-
 void
 new(SV* klass, SV* arg = NULL)
 CODE:
@@ -291,13 +267,13 @@ Text::ClearSilver::HDF
 hdf_obj_next(Text::ClearSilver::HDF hdf)
 
 NEOERR*
-hdf_sort_obj(Text::ClearSilver::HDF hdf, SV* cmp_cb)
+hdf_sort_obj(Text::ClearSilver::HDF hdf, SV* cb)
 CODE:
 {
-    dMY_CXT;
-    MY_CXT.sort_cmp_cb = cmp_cb;
+    my_cxt_t* const cxt = tcs_get_my_cxtp(aTHX);
+    SAVEVPTR(cxt->sort_cmp_cb);
+    cxt->sort_cmp_cb = cb;
     RETVAL = hdf_sort_obj(hdf, tcs_cmp);
-    MY_CXT.sort_cmp_cb = NULL;
 }
 OUTPUT:
     RETVAL

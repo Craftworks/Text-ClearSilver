@@ -10,6 +10,142 @@
 #define NO_XSLOCKS
 #include "Text-ClearSilver.h"
 
+#define MY_CXT_KEY "Text::ClearSilver::_guts" XS_VERSION
+/* my_cxt_t is defined in Text-ClearSilver.h */
+START_MY_CXT
+
+/* my_cxt accessor for HDF.xs */
+my_cxt_t*
+tcs_get_my_cxtp(pTHX) {
+    dMY_CXT;
+    return &MY_CXT;
+}
+
+/* in csparse.c */
+NEOERR*
+tcs_eval_expr(CSPARSE* parse, CSARG* arg, CSARG* result);
+const char*
+tcs_var_lookup(CSPARSE* parse, const char* name);
+long
+tcs_var_int_lookup(CSPARSE* parse, const char* name);
+HDF*
+tcs_var_lookup_obj(CSPARSE* parse, const char* name);
+
+/* general cs function wrapper */
+static NEOERR*
+tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, CSARG* const result) {
+    dTHX;
+    dMY_CXT;
+    dSP;
+    SV** svp;
+    SV* retval;
+
+    assert(MY_CXT.functions);
+
+    /* XXX: Hey! csf->name_len is not set!! */
+    //svp = hv_fetch(MY_CXT.functions, csf->name, csf->name_len, FALSE);
+    svp = hv_fetch(MY_CXT.functions, csf->name, strlen(csf->name), FALSE);
+    if(!( svp && SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVAV
+            && (svp = av_fetch((AV*)SvRV(*svp), 0, FALSE)) )){
+        return nerr_raise(NERR_ASSERT, "Function entry for %s() is broken", csf->name);
+    }
+
+    ENTER;
+    SAVETMPS;
+
+    PUSHMARK(SP);
+    while(args) {
+        const char* str;
+        CSARG val;
+        NEOERR* err;
+        SV* sv;
+
+        err = tcs_eval_expr(parse, args, &val);
+
+        if(err){
+            (void)POPMARK;
+            FREETMPS;
+            LEAVE;
+
+            return nerr_pass(err);
+        }
+
+        sv = sv_newmortal();
+        XPUSHs(sv);
+
+        switch(val.op_type & CS_TYPES){
+        case CS_TYPE_STRING:
+            sv_setpvn(sv, val.s, strlen(val.s));
+            break;
+
+        case CS_TYPE_VAR:
+            str = tcs_var_lookup(parse, val.s);
+            if(str) {
+                sv_setpv(sv, str);
+            }
+            else { /* HDF node */
+                HDF* const hdf = tcs_var_lookup_obj(parse, val.s);
+                if(hdf) {
+                    sv_setref_pv(sv, C_HDF, hdf);
+                }
+            }
+            break;
+
+        case CS_TYPE_NUM:
+            sv_setiv(sv, val.n);
+            break;
+
+        case CS_TYPE_VAR_NUM:
+            sv_setiv(sv, tcs_var_int_lookup(parse, val.s));
+            break;
+
+        default:
+            /* something's wrong? */
+            break;
+        }
+
+        if(val.alloc){
+            free(val.s);
+        }
+        args = args->next;
+    }
+    PUTBACK;
+
+    call_sv(*svp, G_SCALAR | G_EVAL);
+    SPAGAIN;
+    retval = POPs;
+    PUTBACK;
+
+    if(sv_true(ERRSV)){
+        NEOERR* const err =  nerr_raise(NERR_ASSERT,
+            "Function %s() died: %s", csf->name, SvPVx_nolen_const(ERRSV));
+        FREETMPS;
+        LEAVE;
+
+        return err;
+    }
+
+    if(!(SvIOK(retval) && PERL_ABS(SvIVX(retval)) <= PERL_LONG_MAX)) {
+        STRLEN len;
+        const char* const pv = SvPV_const(retval, len);
+        len++; /* '\0' */
+
+        result->op_type = CS_TYPE_STRING;
+        result->s       = (char*)malloc(len);
+        result->alloc    = TRUE;
+        Copy(pv, result->s, len, char);
+    }
+    else { /* SvIOK */
+        result->op_type = CS_TYPE_NUM;
+        result->n       = (long)SvIVX(retval);
+    }
+
+    FREETMPS;
+    LEAVE;
+
+    return STATUS_OK;
+}
+
 NEOERR*
 tcs_parse_string (CSPARSE* const parse, const char* const str, size_t const str_len)
 {
@@ -99,6 +235,75 @@ tcs_sv2io(pTHX_ SV* sv, const char* const mode, int const imode, bool* const nee
     }
 }
 
+static CV*
+tcs_sv2cv(pTHX_ SV* const func) {
+    HV* stash; /* unused */
+    GV* gv;    /* unused */
+    CV* const cv = sv_2cv(func, &stash, &gv, 0);
+    if(!cv){
+        croak("Not a CODE reference");
+    }
+    return cv;
+}
+
+static HV*
+tcs_deref_hv(pTHX_ SV* const hvref) {
+    if(!(SvROK(hvref) && SvTYPE(SvRV(hvref)) == SVt_PVHV)) {
+        croak("Not a HASH reference");
+    }
+    return (HV*)SvRV(hvref);
+}
+
+
+static NEOERR*
+tcs_html_escape(const char* src, char** out) {
+    return nerr_pass(neos_html_escape(src, strlen(src), out));
+}
+
+static NEOERR*
+tcs_url_escape(const char* src, char** out) {
+    return nerr_pass(neos_url_escape(src, out, NULL /* other */));
+}
+
+static NEOERR*
+tcs_js_escape(const char* src, char** out) {
+    return nerr_pass(neos_js_escape(src, out));
+}
+
+
+static void
+tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs) {
+
+    /* functions registered by users */
+    if(funcs) {
+        dMY_CXT;
+        char* key;
+        I32 keylen;
+        SV* val;
+
+        SAVEVPTR(MY_CXT.functions);
+        MY_CXT.functions = funcs;
+
+        hv_iterinit(funcs);
+        while((val = hv_iternextsv(funcs, &key, &keylen))) {
+            AV* pair;
+            if(!(SvROK(val) && SvTYPE(SvRV(val)) == SVt_PVAV)){
+                croak("Function entry for %s() is broken", key);
+            }
+            pair = (AV*)SvRV(val);
+
+            CHECK_ERR( cs_register_function(cs, key,
+                SvIVx(*av_fetch(pair, 1, TRUE)), tcs_function_wrapper) );
+        }
+    }
+
+    /* functions from cgi_register_strfuncs() */
+
+    CHECK_ERR( cs_register_esc_strfunc(cs, "html_escape", tcs_html_escape) );
+    CHECK_ERR( cs_register_esc_strfunc(cs, "url_escape",  tcs_url_escape) );
+    CHECK_ERR( cs_register_esc_strfunc(cs, "js_escape",   tcs_js_escape) );
+}
+
 MODULE = Text::ClearSilver    PACKAGE = Text::ClearSilver
 
 PROTOTYPES: DISABLE
@@ -107,6 +312,9 @@ BOOT:
 {
     XS(boot_Text__ClearSilver__HDF);
     XS(boot_Text__ClearSilver__CS);
+    MY_CXT_INIT;
+    MY_CXT.sort_cmp_cb = NULL;
+    MY_CXT.functions   = NULL;
 
     PUSHMARK(SP);
     boot_Text__ClearSilver__HDF(aTHX_ cv);
@@ -116,6 +324,20 @@ BOOT:
     boot_Text__ClearSilver__CS(aTHX_ cv);
     SPAGAIN;
 }
+
+#ifdef USE_ITHREADS
+
+void
+CLONE(...)
+CODE:
+{
+    MY_CXT_CLONE;
+    MY_CXT.sort_cmp_cb = NULL;
+    MY_CXT.functions   = NULL;
+    PERL_UNUSED_VAR(items);
+}
+
+#endif
 
 void
 new(SV* klass, ...)
@@ -133,6 +355,27 @@ CODE:
     sv_2mortal(self);
     ST(0) = sv_bless(self, gv_stashsv(klass, GV_ADD));
     XSRETURN(1);
+}
+
+void
+register_function(SV* self, SV* name, SV* func, int n_args = -1)
+CODE:
+{
+    SV** const svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "functions", FALSE);
+    HV* hv;
+    SV* pair[2];
+    if(svp) {
+        hv = tcs_deref_hv(aTHX_ *svp);
+    }
+    else {
+        hv = newHV();
+        (void)hv_stores(tcs_deref_hv(aTHX_ self), "functions", newRV_noinc((SV*)hv));
+    }
+
+    pair[0] = newRV_inc((SV*)tcs_sv2cv(aTHX_ func));
+    pair[1] = newSViv(n_args);
+
+    (void)hv_store_ent(hv, name, newRV_noinc((SV*)av_make(2, pair)), 0U);
 }
 
 #define DEFAULT_OUT ((SV*)PL_defoutgv)
@@ -169,7 +412,7 @@ CODE:
 
         CHECK_ERR( hdf_get_node(hdf, "Config", &config) );
 
-        svp = hv_fetchs((HV*)SvRV(self), "Config", FALSE);
+        svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "Config", FALSE);
         if(svp){
             tcs_hdf_add(aTHX_ config, *svp);
         }
@@ -178,7 +421,9 @@ CODE:
         }
 
         CHECK_ERR( cs_init(&cs, hdf) );
-        CHECK_ERR( cgi_register_strfuncs(cs) );
+
+        svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "functions", FALSE);
+        tcs_register_funcs(aTHX_ cs, svp ? tcs_deref_hv(aTHX_ *svp) : NULL);
 
         if(SvROK(src)){
             STRLEN len;
@@ -209,3 +454,5 @@ CODE:
         XCPT_RETHROW;
     }
 }
+
+
