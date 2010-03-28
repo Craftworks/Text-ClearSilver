@@ -271,7 +271,7 @@ tcs_js_escape(const char* src, char** out) {
 }
 
 
-static void
+void
 tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs) {
 
     /* functions registered by users */

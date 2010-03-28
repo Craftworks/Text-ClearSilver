@@ -82,16 +82,7 @@ CODE:
 
     CHECK_ERR( cs_init(&cs, hdf) );
 
-    /* Accoding to src/cgi/cgi.c,
-       cgi_register_strfuncs() includes:
-        url_escape
-        html_escape
-        text_html
-        js_escape
-        html_strip
-        url_validate
-    */
-    CHECK_ERR( cgi_register_strfuncs(cs) );
+    tcs_register_funcs(aTHX_ cs, NULL);
 
     sv_setref_pv(self, SvPV_nolen_const(klass), cs);
 

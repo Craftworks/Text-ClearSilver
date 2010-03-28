@@ -36,6 +36,10 @@ typedef CSPARSE* Text__ClearSilver__CS;
 void
 tcs_throw_error(pTHX_ NEOERR* const err);
 
+void
+tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs);
+
+
 /* HDF */
 HDF*
 tcs_new_hdf(pTHX_ SV* const sv);

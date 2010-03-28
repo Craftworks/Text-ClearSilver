@@ -27,8 +27,10 @@ unless(grep { $_ eq '--no-build-cs' } @ARGV){
 cc_src_paths qw(xs);
 
 cc_include_paths qw(clearsilver clearsilver/util clearsilver/cgi clearsilver/cs);
-cc_append_to_libs [ neo_cs => 'clearsilver/libs' ],
-    qw(neo_utl neo_cgi z);
+cc_append_to_libs
+    [ neo_cs  => 'clearsilver/libs' ], # CSPARSE
+    [ neo_utl => 'clearsilver/libs' ], # HDF and other utils
+;
 
 tests_recursive 't', 't/*';
 
