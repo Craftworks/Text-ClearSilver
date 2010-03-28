@@ -1,4 +1,5 @@
-# author/requires.cpanm
+# $ cpanm < author/requires.cpanm
+--skip-installed
 
 # for tool/get_cs.pl
 LWP
@@ -12,3 +13,8 @@ Module::Install::Repository
 
 # for testing
 Mouse
+
+# for shipit
+ShipIt
+ShipIt::Step::ChangeAllVersions
+CPAN::Uploader
