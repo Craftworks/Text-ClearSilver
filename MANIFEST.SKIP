@@ -12,7 +12,8 @@
 
 # Avoid Makemaker generated and utility files.
 \bMANIFEST\.bak
-\bMakefile$
+#\bMakefile$
+^Makefile$
 \bblib/
 \bMakeMaker-\d
 \bpm_to_blib\.ts$

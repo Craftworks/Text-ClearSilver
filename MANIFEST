@@ -13,6 +13,7 @@ clearsilver/cgi/date.h
 clearsilver/cgi/fcgi_hello.c
 clearsilver/cgi/html.c
 clearsilver/cgi/html.h
+clearsilver/cgi/Makefile
 clearsilver/cgi/rfc2388.c
 clearsilver/cgi/static.c
 clearsilver/ClearSilver.h
@@ -26,6 +27,7 @@ clearsilver/cs/cs.h
 clearsilver/cs/csdump.c
 clearsilver/cs/csparse.c
 clearsilver/cs/cstest.c
+clearsilver/cs/Makefile
 clearsilver/cs/test.cs
 clearsilver/cs/test.cs.gold
 clearsilver/cs/test.hdf
@@ -120,8 +122,10 @@ clearsilver/csharp/cstest.cs
 clearsilver/csharp/cstest.gold
 clearsilver/csharp/data_cstest.cst
 clearsilver/csharp/data_cstest.hdf
+clearsilver/csharp/Makefile
 clearsilver/csharp/README
 clearsilver/dso/dsotest.c
+clearsilver/dso/Makefile
 clearsilver/dso/README
 clearsilver/imd/0.gif
 clearsilver/imd/1.gif
@@ -135,6 +139,7 @@ clearsilver/imd/example.imd
 clearsilver/imd/imd.c
 clearsilver/imd/imd.cs
 clearsilver/imd/imdm.py
+clearsilver/imd/Makefile
 clearsilver/imd/README
 clearsilver/imd/test.in
 clearsilver/INSTALL
@@ -152,6 +157,7 @@ clearsilver/java-jni/j_neo_util.c
 clearsilver/java-jni/j_neo_util.h
 clearsilver/java-jni/javatest.gold
 clearsilver/java-jni/JNI.java
+clearsilver/java-jni/Makefile
 clearsilver/java-jni/README-bin.txt
 clearsilver/java-jni/README.txt
 clearsilver/java-jni/servlet/CSPage.java
@@ -160,6 +166,7 @@ clearsilver/java-jni/testdata/test.cs
 clearsilver/java-jni/testdata/test1.hdf
 clearsilver/LICENSE
 clearsilver/m4/ac_jni_include_dirs.m4
+clearsilver/Makefile
 clearsilver/man/man3/cBroadcast.3
 clearsilver/man/man3/cCreate.3
 clearsilver/man/man3/cDestroy.3
@@ -281,6 +288,7 @@ clearsilver/man/man3/skipRelease.3
 clearsilver/man/man3/skipSearch.3
 clearsilver/man/man3/wdb_keys.3
 clearsilver/mkinstalldirs
+clearsilver/mod_ecs/Makefile
 clearsilver/mod_ecs/Makefile.tmpl
 clearsilver/mod_ecs/mod_ecs.c
 clearsilver/mod_ecs/mod_ecs.h
@@ -296,6 +304,7 @@ clearsilver/perl/test.gold
 clearsilver/perl/test.hdf
 clearsilver/perl/test.pl
 clearsilver/perl/typemap
+clearsilver/ports/freebsd/Makefile
 clearsilver/ports/freebsd/pkg-descr
 clearsilver/ports/freebsd/pkg-plist
 clearsilver/ports/rpm/clearsilver.spec
@@ -322,6 +331,7 @@ clearsilver/python/examples/trans/TODO
 clearsilver/python/examples/trans/trans.py
 clearsilver/python/examples/trans/trans.sql
 clearsilver/python/examples/trans/tstart.py
+clearsilver/python/Makefile
 clearsilver/python/neo_cgi.c
 clearsilver/python/neo_cs.c
 clearsilver/python/neo_util.c
@@ -340,6 +350,7 @@ clearsilver/ruby/ext/hdf/neo_util.c
 clearsilver/ruby/hdftest.gold
 clearsilver/ruby/install.rb
 clearsilver/ruby/lib/neo.rb
+clearsilver/ruby/Makefile
 clearsilver/ruby/test/hdftest.rb
 clearsilver/rules.mk.in
 clearsilver/scripts/ChangeLog.py
@@ -350,6 +361,7 @@ clearsilver/util/dict.c
 clearsilver/util/dict.h
 clearsilver/util/filter.c
 clearsilver/util/filter.h
+clearsilver/util/Makefile
 clearsilver/util/missing.c
 clearsilver/util/neo_date.c
 clearsilver/util/neo_date.h
@@ -389,6 +401,7 @@ clearsilver/util/test/hdf_sort_test.c
 clearsilver/util/test/hdfloadtest.c
 clearsilver/util/test/hdftest.c
 clearsilver/util/test/listdir_test.c
+clearsilver/util/test/Makefile
 clearsilver/util/test/net_test.c
 clearsilver/util/test/test.hdf
 clearsilver/util/test/test2.hdf
