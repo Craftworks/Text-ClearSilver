@@ -31,29 +31,12 @@ tcs_var_int_lookup(CSPARSE* parse, const char* name);
 HDF*
 tcs_var_lookup_obj(CSPARSE* parse, const char* name);
 
-/* general cs function wrapper */
 static NEOERR*
-tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, CSARG* const result) {
-    dTHX;
-    dMY_CXT;
+tcs_push_args(pTHX_ CSPARSE* const parse, CSARG* args) {
     dSP;
-    SV** svp;
-    SV* retval;
-
-    assert(MY_CXT.functions);
-
-    /* XXX: Hey! csf->name_len is not set!! */
-    //svp = hv_fetch(MY_CXT.functions, csf->name, csf->name_len, FALSE);
-    svp = hv_fetch(MY_CXT.functions, csf->name, strlen(csf->name), FALSE);
-    if(!( svp && SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVAV
-            && (svp = av_fetch((AV*)SvRV(*svp), 0, FALSE)) )){
-        return nerr_raise(NERR_ASSERT, "Function entry for %s() is broken", csf->name);
-    }
-
-    ENTER;
-    SAVETMPS;
 
     PUSHMARK(SP);
+
     while(args) {
         const char* str;
         CSARG val;
@@ -64,8 +47,6 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
 
         if(err){
             (void)POPMARK;
-            FREETMPS;
-            LEAVE;
 
             return nerr_pass(err);
         }
@@ -110,19 +91,50 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
         args = args->next;
     }
     PUTBACK;
+    return STATUS_OK;
+}
+
+/* general cs function wrapper */
+static NEOERR*
+tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* const args, CSARG* const result) {
+    dTHX;
+    dMY_CXT;
+    SV** svp;
+    SV* retval;
+    NEOERR* err;
+
+    assert(MY_CXT.functions);
+
+    /* XXX: Hey! csf->name_len is not set!! */
+    //svp = hv_fetch(MY_CXT.functions, csf->name, csf->name_len, FALSE);
+    svp = hv_fetch(MY_CXT.functions, csf->name, strlen(csf->name), FALSE);
+    if(!( svp && SvROK(*svp) && SvTYPE(SvRV(*svp)) == SVt_PVAV
+            && (svp = av_fetch((AV*)SvRV(*svp), 0, FALSE)) )){
+        return nerr_raise(NERR_ASSERT, "Function entry for %s() is broken", csf->name);
+    }
+
+    ENTER;
+    SAVETMPS;
+
+    err = tcs_push_args(aTHX_ parse, args); /* PUSHMARK & PUSH & PUTBACK */
+    if(err != STATUS_OK) {
+        err = nerr_pass(err);
+        goto cleanup;
+    }
 
     call_sv(*svp, G_SCALAR | G_EVAL);
-    SPAGAIN;
-    retval = POPs;
-    PUTBACK;
+
+    {
+        dSP;
+        SPAGAIN;
+        retval = POPs;
+        PUTBACK;
+    }
 
     if(sv_true(ERRSV)){
-        NEOERR* const err =  nerr_raise(NERR_ASSERT,
+        err =  nerr_raise(NERR_ASSERT,
             "Function %s() died: %s", csf->name, SvPVx_nolen_const(ERRSV));
-        FREETMPS;
-        LEAVE;
-
-        return err;
+        goto cleanup;
     }
 
     if(!(SvIOK(retval) && PERL_ABS(SvIVX(retval)) <= PERL_LONG_MAX)) {
@@ -140,10 +152,61 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
         result->n       = (long)SvIVX(retval);
     }
 
+    cleanup:
     FREETMPS;
     LEAVE;
 
-    return STATUS_OK;
+    return err;
+}
+
+static NEOERR*
+tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, CSARG* const result) {
+    dTHX;
+    NEOERR* err;
+
+    PERL_UNUSED_ARG(csf);
+
+    ENTER;
+    SAVETMPS;
+
+    err = tcs_push_args(aTHX_ parse, args); /* PUSHMARK & PUSH & PUTBACK */
+    if(err != STATUS_OK) {
+        err = nerr_pass(err);
+        goto cleanup;
+    }
+
+    {
+        dSP; dMARK; dORIGMARK;
+        I32 const items  = SP - MARK;
+
+        if(items < 1){
+            err = nerr_raise(NERR_ASSERT, "Too few arguments for sprintf()");
+        }
+        else {
+            SV* const retval = sv_newmortal();
+            STRLEN len;
+            const char* pv;
+
+            do_sprintf(retval, SP - MARK, MARK + 1);
+
+            pv = SvPV_const(retval, len);
+            len++; /* '\0' */
+
+            result->op_type = CS_TYPE_STRING;
+            result->s       = (char*)malloc(len);
+            result->alloc    = TRUE;
+            Copy(pv, result->s, len, char);
+        }
+
+        SP = ORIGMARK;
+        PUTBACK;
+    }
+
+    cleanup:
+    FREETMPS;
+    LEAVE;
+
+    return err;
 }
 
 NEOERR*
@@ -159,7 +222,7 @@ tcs_parse_string (CSPARSE* const parse, const char* const str, size_t const str_
             "Unable to allocate memory");
     }
 
-    memcpy(ibuf, str, str_len + 1); /* with '\0' */
+    Copy(str, ibuf, str_len + 1, char); /* with '\0' */
     return cs_parse_string(parse, ibuf, str_len);
 }
 
@@ -296,6 +359,9 @@ tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs) {
                 SvIVx(*av_fetch(pair, 1, TRUE)), tcs_function_wrapper) );
         }
     }
+
+    /* TCS specific builtins */
+    CHECK_ERR( cs_register_function(cs, "sprintf", -1, tcs_sprintf_function) );
 
     /* functions from cgi_register_strfuncs() */
 
