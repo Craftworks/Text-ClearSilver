@@ -56,10 +56,12 @@ tcs_push_args(pTHX_ CSPARSE* const parse, CSARG* args) {
 
         switch(val.op_type & CS_TYPES){
         case CS_TYPE_STRING:
-            sv_setpvn(sv, val.s, strlen(val.s));
+            assert(val.s);
+            sv_setpv(sv, val.s);
             break;
 
         case CS_TYPE_VAR:
+            assert(val.s);
             str = tcs_var_lookup(parse, val.s);
             if(str) {
                 sv_setpv(sv, str);
@@ -77,6 +79,7 @@ tcs_push_args(pTHX_ CSPARSE* const parse, CSARG* args) {
             break;
 
         case CS_TYPE_VAR_NUM:
+            assert(val.s);
             sv_setiv(sv, tcs_var_int_lookup(parse, val.s));
             break;
 
@@ -187,7 +190,7 @@ tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
             STRLEN len;
             const char* pv;
 
-            do_sprintf(retval, SP - MARK, MARK + 1);
+            do_sprintf(retval, items, MARK + 1);
 
             pv = SvPV_const(retval, len);
             len++; /* '\0' */
