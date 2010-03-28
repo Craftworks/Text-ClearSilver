@@ -417,6 +417,7 @@ Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
+patch/cs/csparse.c.patch
 README
 t/00_load.t
 t/01_basic.t
@@ -425,6 +426,7 @@ t/03_wrong_uses.t
 t/04_cs_has_a_hdf.t
 t/05_process.t
 t/06_compat.t
+t/07_funcs.t
 t/data/basic.gold
 t/data/basic.hdf
 t/data/basic.tcs
