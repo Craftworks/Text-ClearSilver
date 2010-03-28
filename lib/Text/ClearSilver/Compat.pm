@@ -3,7 +3,7 @@ use strict;
 use Text::ClearSilver;
 use Symbol ();
 
-no warnings qw(redefine once);
+no warnings qw(once);
 
 $INC{'ClearSilver.pm'}          = __FILE__;
 $INC{'Data/ClearSilver/HDF.pm'} = __FILE__;
@@ -33,7 +33,7 @@ sub sortObj {
 *removeTree = \&remove_tree;
 
 # Data::ClearSilver::HDF is a subclass of Text::ClearSilver::HDF
-@Data::ClearSilver::HDF::ISA = (__PACKAGE__);
+@Data::ClearSilver::HDF::ISA = ('ClearSilver::HDF');
 
 *hdf = \&new;
 

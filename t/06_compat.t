@@ -7,7 +7,9 @@ use Test::More;
 
 use if !$ENV{TEST_ORIGINAL}, 'Text::ClearSilver::Compat';
 
-use ClearSilver;
+use Test::Requires qw(ClearSilver);
+use Test::Requires qw(Data::ClearSilver::HDF);
+
 
 note "Testing with ", exists $INC{'Text/ClearSilver.pm'}
     ? 'Text::ClearSilver'
@@ -107,6 +109,11 @@ foreach (1 .. 2){
         no warnings 'uninitialized'; # the origina render() produces warnings :(
         is $cs->render, $result, "parse_file & render";
     }
+
+    # D::CS::HDF
+    $hdf = Data::ClearSilver::HDF->hdf({ foo => 'bar' });
+    isa_ok $hdf, 'ClearSilver::HDF', 'Data::ClearSilver::HDF->hdf';
+    is $hdf->getObj('foo')->objValue, 'bar';
 }
 
 done_testing;
