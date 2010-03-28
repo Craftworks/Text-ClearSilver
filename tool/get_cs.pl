@@ -1,9 +1,14 @@
 #!perl -w
 
+# downlowd, extract the clearsilver distribution, and apply patches in patch/
+
 use strict;
+use Fatal qw(open close);
 use LWP::Simple qw(mirror);
 use File::Path qw(remove_tree);
 use Archive::Tar;
+use File::Find qw(find);
+use Text::Patch qw(patch);
 
 my $version = shift || '0.10.5';
 
@@ -19,5 +24,44 @@ Archive::Tar->extract_archive($distfile);
 
 remove_tree "clearsilver";
 rename "clearsilver-$version" => "clearsilver";
+
+my @patches;
+find sub{
+    return if not /\.patch$/;
+    return if not -f $_;
+
+    push @patches, $File::Find::name;
+}, qw(patch);
+
+foreach my $patch(@patches) {
+    print "patching $patch ...\n";
+
+    my $source = $patch;
+    $source =~ s/^patch/clearsilver/;
+    $source =~ s/\.patch$//;
+
+    if(not -f $source) {
+        print "PATCH: $source not found, skipped.\n";
+    }
+
+    my $input = do {
+        local $/;
+        open my $in, '<', $source;
+        <$in>;
+    };
+    my $diff = do {
+        local $/;
+        open my $in, '<', $patch;
+        <$in>;
+    };
+
+    my $output = patch($input, $diff, { STYLE => 'Unified' });
+
+    rename $source => sprintf '%s.%d~', $source, time;
+
+    open my $out, '>', $source;
+    print $out $output;
+    close $out;
+}
 
 print "done.\n";
