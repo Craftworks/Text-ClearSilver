@@ -475,7 +475,10 @@ CODE:
     XCPT_TRY_START {
         HDF* config = NULL;
         SV** svp;
-        ofp = tcs_sv2io(aTHX_ dest, "w", O_WRONLY|O_CREAT|O_TRUNC, &need_ofp_close);
+
+        if(!(SvROK(dest) && SvTYPE(SvRV(dest)) <= SVt_PVMG)) { /* not a scalar ref */
+            ofp = tcs_sv2io(aTHX_ dest, "w", O_WRONLY|O_CREAT|O_TRUNC, &need_ofp_close);
+        }
 
         hdf = tcs_new_hdf(aTHX_ vars);
 
@@ -509,7 +512,13 @@ CODE:
             CHECK_ERR( cs_parse_file(cs, SvPV_nolen_const(src)) );
         }
 
-        CHECK_ERR(cs_render(cs, ofp, tcs_output_to_io));
+        if(ofp) {
+            CHECK_ERR( cs_render(cs, ofp, tcs_output_to_io) );
+        }
+        else {
+            sv_setpvs(SvRV(dest), "");
+            CHECK_ERR( cs_render(cs, SvRV(dest), tcs_output_to_sv) );
+        }
     }
     XCPT_TRY_END
 
