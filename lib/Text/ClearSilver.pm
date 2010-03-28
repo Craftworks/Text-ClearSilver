@@ -85,7 +85,8 @@ will be used. Optional I<%config> are the same as I<%config> for C<new()>.
 
 =head2 The Text::ClearSilver::HDF class
 
-This is a low-level interface to the C<< HDF* >> data structure.
+This is a low-level interface to the C<< HDF* >> (Hierarchial Data Format)
+data structure.
 
 =head3 B<< Text::ClearSilver::HDF->new($hdf_source) :HDF >>
 
