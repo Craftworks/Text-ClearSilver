@@ -497,6 +497,7 @@ CODE:
         svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "functions", FALSE);
         tcs_register_funcs(aTHX_ cs, svp ? tcs_deref_hv(aTHX_ *svp) : NULL);
 
+        /* parse CS template */
         if(SvROK(src)){
             STRLEN len;
             const char* pv;
@@ -512,6 +513,7 @@ CODE:
             CHECK_ERR( cs_parse_file(cs, SvPV_nolen_const(src)) );
         }
 
+        /* render */
         if(ofp) {
             CHECK_ERR( cs_render(cs, ofp, tcs_output_to_io) );
         }
