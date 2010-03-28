@@ -9,7 +9,7 @@ use Text::ClearSilver;
 my $tcs = Text::ClearSilver->new();
 
 isa_ok $tcs, 'Text::ClearSilver';
-my $out = '';
+my $out;
 $tcs->process(\'<?cs var:foo ?>', { foo => 'bar' }, \$out);
 is $out, 'bar', 'process to scalar ref';
 
@@ -33,16 +33,13 @@ $tcs = Text::ClearSilver->new(
     },
 );
 
-$out = '';
-$tcs->process(\'<?tcs var:foo ?>', { foo => '<bar>' }, \$out);
 
+$tcs->process(\'<?tcs var:foo ?>', { foo => '<bar>' }, \$out);
 is $out, '&lt;bar&gt;', 'with Config';
 
-$out = '';
 $tcs->process(\'<?tcs var:foo ?>', { foo => '<bar>' }, \$out, VarEscapeMode => 'none');
 is $out, '<bar>', 'config in place';
 
-$out = '';
 $tcs->process(\'<?tcs var:html_escape(foo) ?>', { foo => '<bar>' }, \$out, VarEscapeMode => 'none');
 is $out, '&lt;bar&gt;', 'config in place';
 
