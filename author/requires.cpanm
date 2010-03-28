@@ -1,0 +1,14 @@
+# author/requires.cpanm
+
+# for tool/get_cs.pl
+LWP
+Archive::Tar
+Text::Patch
+
+# for Makefile.PL
+Module::Install
+Module::Install::XSUtil
+Module::Install::Repository
+
+# for testing
+Mouse
