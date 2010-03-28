@@ -62,8 +62,6 @@ Configuration parameters may be:
 
 =item C<< TagStart => $str >>
 
-=item C<< EnableAuditMode => $bool >>
-
 =back
 
 =head3 C<< $cs->register_function($name, \&func, $n_args = -1 ) :Void >>
