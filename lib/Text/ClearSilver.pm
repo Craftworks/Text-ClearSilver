@@ -71,6 +71,44 @@ Registers a named function in the TCS processor.
 If you set the number of arguments E<gt>= 0, it will be checked at parsing
 time, rather than runtime.
 
+Note that Text::ClearSilver defines some builtin functions:
+
+=over 4
+
+=item C<subcount(node)>
+
+=item C<name(var)>
+
+=item C<first(var)>
+
+=item C<last(var)>
+
+=item C<abs(num)>
+
+=item C<max(num1, num2)>
+
+=item C<min(num1, num2)>
+
+=item C<string.slice(expr, start, end)>
+
+=item C<string.find(expr, substr)>
+
+=item C<string.length(expr)>
+
+=item C<_(expr)>
+
+=item C<html_escape(expr)>
+
+=item C<url_escape(expr)>
+
+=item C<js_escape(expr)>
+
+=item C<sprintf(fmt, ...)>
+
+=back
+
+and you cannot re-define these builtins.
+
 =head3 C<< $cs->process($source, $data, ?$output, %config) :Void >>
 
 Processes a ClearSilver template. The first parameter, I<$source>, indicates
