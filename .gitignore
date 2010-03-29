@@ -19,6 +19,6 @@ cover_db*
 *.gcda
 *.gno
 *.gcov
-clearsilver/
+cs/
 *.gz
 *.c
