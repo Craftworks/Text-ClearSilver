@@ -571,7 +571,6 @@ CODE:
         }
         else {
             sv_setpvs(SvRV(dest), "");
-            (void)SvGROW(SvRV(dest), 80);
             CHECK_ERR( cs_render(cs, SvRV(dest), tcs_output_to_sv) );
         }
     }
