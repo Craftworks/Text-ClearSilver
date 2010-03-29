@@ -354,7 +354,7 @@ Goro Fuji (gfx) E<lt>gfuji(at)cpan.orgE<gt>
 The ClearSilver template engine is developed by Neotonic Software Corp,
 and Copyright (c) 2003 Brandon Long.
 
-See L<http://www.clearsilver.net/license.hdf> for the ClearSilver Software License.
+See L<http://www.clearsilver.net/license.hdf> for ClearSilver Software License.
 
 =head1 LICENSE AND COPYRIGHT
 
