@@ -24,12 +24,13 @@ This document describes Text::ClearSilver version 0.001.
     use Text::ClearSilver;
 
     my $cs = Text::ClearSilver->new(
-        # ClearSilver configuration
+        # core configuration
+        VarEscapeMode => 'html', # html,js,url, or none
+        TagStart      => 'cs',   # <?cs ... >
 
-        Config => {
-            VarEscapeMode => 'html', # html,js,url, or none
-            TagStart      => 'cs',   # <?cs ... >
-        }
+        # extended configuratin
+        load_path => [qw(/path/to/template)],
+        dataset   => { common_foo => 'value' },
     );
 
     $cs->register_function( lcfirst => sub{ lcfirst $_[0] });
@@ -50,7 +51,7 @@ Text::ClearSilver is a Perl binding to the B<ClearSilver> template engine.
 
 =head2 The Text::ClearSilver class
 
-=head3 C<< Text::ClearSilver->new(Config => \%config) :TCS >>
+=head3 C<< Text::ClearSilver->new(%config | \%config) :TCS >>
 
 Creates a Text::ClearSilver processor.
 
@@ -64,7 +65,12 @@ Configuration parameters may be:
 
 =back
 
-=head3 C<< $cs->register_function($name, \&func, $n_args = -1 ) :Void >>
+
+=head3 C<< $tcs->dataset :HDF >>
+
+Returns the dataset that the processor uses in common.
+
+=head3 C<< $tcs->register_function($name, \&func, $n_args = -1 ) :Void >>
 
 Registers a named function in the TCS processor.
 
@@ -109,7 +115,7 @@ Note that Text::ClearSilver defines some builtin functions:
 
 and you cannot re-define these builtins.
 
-=head3 C<< $cs->process($source, $data, ?$output, %config) :Void >>
+=head3 C<< $tcs->process($source, $data, ?$output, %config) :Void >>
 
 Processes a ClearSilver template. The first parameter, I<$source>, indicates
 the input template as a filename, filehandle, or scalar reference.
