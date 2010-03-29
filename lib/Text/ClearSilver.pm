@@ -33,15 +33,14 @@ This document describes Text::ClearSilver version 0.001.
         dataset   => { common_foo => 'value' },
     );
 
-    $cs->register_function( lcfirst => sub{ lcfirst $_[0] });
+    $cs->register_function( lcfirst => sub{ lcfirst $_[0] } );
 
     my %vars = (
         foo => 'bar',         # as var:foo
         baz => { qux => 42 }, # as var:baz.qux
     );
-    $cs->process(\q{<?cs var:lcfirst(foo) ?>},
-        \%vars,
-        \*STDOUT); # => Bar
+
+    $cs->process(\q{<?cs var:lcfirst(foo) ?>}, \%vars); # => Bar
 
 =head1 DESCRIPTION
 
@@ -59,12 +58,34 @@ Configuration parameters may be:
 
 =over 4
 
-=item C<< VarEscapeMode => ( 'html' | 'js' | 'url' | 'none' ) >>
+=item C<< VarEscapeMode => ( 'none' | 'html' | 'js' | 'url' ) >>
+
+Sets variable escaping mode. If it is not C<none>, template variables will be
+automatically escaped. Default to C<none>.
+
+This is ClearSilver core feature, and a shortcut for
+C<< dataset => { Config => VarEscapeMode => ... } >>.
 
 =item C<< TagStart => $str >>
 
-=back
+Sets ClearSilver tag. Default to C<cs>.
 
+This is ClearSilver core feature, and a shortcut for
+C<< dataset => { Config => TagStart => ... } >>.
+
+=item C<< load_path => \@path >>
+
+Sets paths which are used to find template files.
+
+This is a shortcut for C<< dataset => { hdf => { loadpaths => \@path } } >>.
+
+=item C<< dataset => $hdf_source >>
+
+Sets a dataset which is used in common.
+
+I<$hdf_source> may be references to data or HDF string.
+
+=back
 
 =head3 C<< $tcs->dataset :HDF >>
 
@@ -119,11 +140,12 @@ and you cannot re-define these builtins.
 
 Processes a ClearSilver template. The first parameter, I<$source>, indicates
 the input template as a filename, filehandle, or scalar reference.
-The second, I<$data>, indicates template variables which may be a HDF data set,
+The second, I<$data>, indicates template variables which may be a HDF dataset,
 HASH reference, ARRAY reference. The result of process is printed to the
 optional third parameter, I<$output>, which may be a filename, filehandle,
 or scalar reference. If the third parameter is omitted, the default filehandle
-will be used. Optional I<%config> are the same as I<%config> for C<new()>.
+will be used. Optional I<%config> are stored into C<Config.*>, i.e.
+C<< VarEscapeMode => 'html' >> changes the escaping mode temporally.
 
 =head2 The Text::ClearSilver::HDF class
 
@@ -132,7 +154,7 @@ data structure.
 
 =head3 B<< Text::ClearSilver::HDF->new($hdf_source) :HDF >>
 
-Creates a HDF data set and initializes it with I<$hdf_source>, which
+Creates a HDF dataset and initializes it with I<$hdf_source>, which
 may be a reference to data structure or an HDF string.
 
 Note that any scalar values, including blessed references, will be simply
@@ -140,17 +162,17 @@ stringified.
 
 =head3 B<< $hdf->add($hdf_source) :Void >>
 
-Adds I<$hdf_source> into the data set.
+Adds I<$hdf_source> into the dataset.
 
 I<$hdf_source> may be a reference to data structure or an HDF string.
 
 =head3 B<< $hdf->get_value($name, ?$default_value) :Str >>
 
-Returns the value of a named node in the data set.
+Returns the value of a named node in the dataset.
 
 =head3 B<< $hdf->get_obj($name) :HDF >>
 
-Returns the data set node at a named location.
+Returns the dataset node at a named location.
 
 =head3 B<< $hdf->get_node($name) :HDF >>
 
@@ -162,11 +184,11 @@ Returns the first child of a named node.
 
 =head3 B<< $hdf->obj_child :HDF >>
 
-Returns the first child of the data set.
+Returns the first child of the dataset.
 
 =head3 B<< $hdf->obj_next :HDF >>
 
-Returns the next node of the data set.
+Returns the next node of the dataset.
 
 =head3 B<< $hdf->obj_top :HDF >>
 
@@ -186,18 +208,18 @@ Sets the value of a named node.
 
 =head3 B<< $hdf->set_copy($dest_name, $src_name) :Void >>
 
-Copies a value from one location in the data set to another.
+Copies a value from one location in the dataset to another.
 
 =head3 B<< $hdf->set_symlink($src_name, $dest_name) :Void >>
 
-Sets a part of the data set to link to another.
+Sets a part of the dataset to link to another.
 
 =head3 B<< $hdf->sort_obj(\&compare) :Void >>
 
-Sorts the children of the data set.
+Sorts the children of the dataset.
 
 A I<&compare> callback is given a pair of HDF nodes.
-For example, here is a function to sort a data set by names:
+For example, here is a function to sort a dataset by names:
 
     $hdf->sort_obj(sub {
         my($a, $b) = @_;
@@ -214,15 +236,15 @@ Writes an HDF data file.
 
 =head3 B<< $hdf->dump() :Str >>
 
-Serializes the data set to an HDF string, which can be passed into C<add()>.
+Serializes the dataset to an HDF string, which can be passed into C<add()>.
 
 =head3 B<< $hdf->remove_tree($name) :Void >>
 
-Removes a named node of the data set.
+Removes a named node of the dataset.
 
 =head3 B<< $hdf->copy($name, $source) :Void >>
 
-Copies a named node of a data set to the data set.
+Copies a named node of a dataset to the dataset.
 
 if I<$name> is empty, all the I<$souece> node will be copied.
 
