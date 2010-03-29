@@ -25,7 +25,18 @@ $ENV{CFLAGS}  = $Config{ccflags} . ' ' . $Config{optimize};
 $ENV{LDFLAGS} = $Config{ldflags};
 #$ENV{LIBS}    = $Config{libs};
 
-xsystem('./configure', @configure_args);
+eval {
+    xsystem('./configure', @configure_args);
+} or do {
+    warn $@;
+    if(open my $in, '<', "config.log"){
+        while(<$in>){
+            warn "!!! $_" if /\b cannot \b/xms;
+        }
+        close $in;
+    }
+    die "$0 stopped";
+};
 xsystem('make');
 
 sub xsystem {
