@@ -23,7 +23,7 @@ chdir $cs_dir;
 $ENV{CC}      = $Config{cc};
 $ENV{CFLAGS}  = $Config{ccflags} . ' ' . $Config{optimize};
 $ENV{LDFLAGS} = $Config{ldflags};
-$ENV{LIBS}    = $Config{libs};
+#$ENV{LIBS}    = $Config{libs};
 
 xsystem('./configure', @configure_args);
 xsystem('make');
