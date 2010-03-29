@@ -27,12 +27,14 @@ is $out, 'baz-', 'process with defout';
 
 
 $tcs = Text::ClearSilver->new(
-    Config => {
-        VarEscapeMode => 'html',
-        TagStart      => 'tcs',
-    },
+    VarEscapeMode => 'html',
+    TagStart      => 'tcs',
+    dataset       => { common_var => 'ok' },
 );
 
+like $tcs->dataset->dump, qr/\b Config \b/xms, 'dataset includes Config';
+like $tcs->dataset->dump, qr/\b VarEscapeMode \b/xms, 'dataset includes VarEscapeMode';
+like $tcs->dataset->dump, qr/\b TagStart \b/xms, 'dataset includes TagStart';
 
 $tcs->process(\'<?tcs var:foo ?>', { foo => '<bar>' }, \$out);
 is $out, '&lt;bar&gt;', 'with Config';
@@ -42,5 +44,8 @@ is $out, '<bar>', 'config in place';
 
 $tcs->process(\'<?tcs var:html_escape(foo) ?>', { foo => '<bar>' }, \$out, VarEscapeMode => 'none');
 is $out, '&lt;bar&gt;', 'config in place';
+
+$tcs->process(\'<?tcs var:common_var ?>', {}, \$out);
+is $out, 'ok', 'dataset from instance';
 
 done_testing;

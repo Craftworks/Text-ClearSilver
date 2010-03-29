@@ -36,9 +36,15 @@ typedef CSPARSE* Text__ClearSilver__CS;
 void
 tcs_throw_error(pTHX_ NEOERR* const err);
 
+void*
+tcs_get_struct_ptr(pTHX_ SV* const arg, const char* const klass,
+        const char* const func_fq_name, const char* var_name);
+
 void
 tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs);
 
+NEOERR*
+tcs_parse_sv(pTHX_ CSPARSE* const parse, SV* const sv);
 
 /* HDF */
 HDF*
@@ -53,10 +59,6 @@ tcs_output_to_io(void* io, char* s);
 
 NEOERR*
 tcs_output_to_sv(void* io, char* s);
-
-/* clearsilver/cs/csparse.c */
-NEOERR*
-tcs_parse_string(CSPARSE* cs, const char* str, size_t str_len);
 
 /* MY_CXT stuff */
 typedef struct {

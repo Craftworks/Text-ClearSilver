@@ -47,6 +47,10 @@ tcs_output_to_io(void* io, char* s) {
 }
 
 
+
+#undef cs_parse_string
+#define cs_parse_string(cs, str) tcs_parse_sv(aTHX_ cs, str)
+
 /*
     NOTE: Methods which seem to return NEOERR* throw errors when they fail,
           otherwise return undef.
@@ -122,14 +126,6 @@ cs_parse_file(Text::ClearSilver::CS cs, const char* cs_file)
 
 NEOERR*
 cs_parse_string(Text::ClearSilver::CS cs, SV* in_str)
-CODE:
-{
-    STRLEN len;
-    const char* const str = SvPV_const(in_str, len);
-    RETVAL = tcs_parse_string(cs, str, len);
-}
-OUTPUT:
-    RETVAL
 
 void
 cs_dump(Text::ClearSilver::CS cs)

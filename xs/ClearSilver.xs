@@ -213,8 +213,9 @@ tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
 }
 
 NEOERR*
-tcs_parse_string (CSPARSE* const parse, const char* const str, size_t const str_len)
-{
+tcs_parse_sv(pTHX_ CSPARSE* const parse, SV* const sv) {
+    STRLEN str_len;
+    const char* const str = SvPV_const(sv, str_len);
     /* ClearSilver can access ibuf out of range of memory :(
        so extra some memory must be allocated.
     */
@@ -252,37 +253,69 @@ tcs_get_class_name(pTHX_ SV* const self) {
     }
 }
 
-static HV*
-tcs_buildargs(pTHX_ SV* const self, I32 const ax, I32 const items) {
-    HV* args;
+static void
+tcs_set_config(pTHX_ SV* const self, HV* const hv, HDF* const hdf, SV* const key, SV* const val) {
+    const char* const keypv = SvPV_nolen_const(key);
+    if(isUPPER(*keypv)){ /* builtin config */
+        HDF* config;
+        CHECK_ERR( hdf_get_node(hdf, "Config", &config) );
+        CHECK_ERR( hdf_set_value(config, keypv, SvPV_nolen_const(val)) );
+    }
+    else { /* extended config */
+        if(strEQ(keypv, "input_encoding")) {
+            /* TODO */
+            (void)hv_store_ent(hv, key, newSVsv(val), 0U);
+        }
+        else if(strEQ(keypv, "dataset")) {
+            tcs_hdf_add(aTHX_ hdf, val);
+        }
+        else if(strEQ(keypv, "load_path")) {
+            HDF* loadpaths;
+            CHECK_ERR( hdf_get_node(hdf, "hdf.loadpaths", &loadpaths) );
 
-    if(items == 1){
+            tcs_hdf_add(aTHX_ loadpaths, val);
+        }
+        else if(ckWARN(WARN_MISC)) {
+            Perl_warner(aTHX_ packWARN(WARN_MISC), "%s: unknown configuration variable '%s'",
+                tcs_get_class_name(aTHX_ self), keypv);
+            (void)hv_store_ent(hv, key, newSVsv(val), 0U);
+        }
+    }
+}
+
+static void
+tcs_configure(pTHX_ SV* const self, HV* const hv, HDF* const hdf, I32 const ax, I32 const items) {
+    if(items == 1) {
         SV* const args_ref = ST(0);
+        HV* args;
+        HE* he;
+
         SvGETMAGIC(args_ref);
+
         if(!(SvROK(args_ref) && SvTYPE(SvRV(args_ref)) == SVt_PVHV
                 && !SvOBJECT(SvRV(args_ref)) )){
-            croak("Single parameters to %s's configure routine must be a HASH ref",
+            croak("%s: single parameters to configure must be a HASH ref",
                 tcs_get_class_name(aTHX_ self));
         }
-        args = newHVhv((HV*)SvRV(args_ref));
-        sv_2mortal((SV*)args);
+        args = (HV*)SvRV(args_ref);
+
+        hv_iterinit(args);
+        while((he = hv_iternext(args))) {
+            tcs_set_config(aTHX_ self, hv, hdf, hv_iterkeysv(he), hv_iterval(args, he));
+        }
     }
-    else{
+    else {
         I32 i;
 
         if( (items % 2) != 0 ){
-            croak("Odd number of parameters to %s's configure routine",
+            croak("%s: odd number of parameters to configure",
                 tcs_get_class_name(aTHX_ self));
         }
 
-        args = newHV();
-        sv_2mortal((SV*)args);
         for(i = 0; i < items; i += 2){
-            (void)hv_store_ent(args, ST(i), newSVsv(ST(i+1)), 0U);
+            tcs_set_config(aTHX_ self, hv, hdf, ST(i), ST(i+1));
         }
-
     }
-    return args;
 }
 
 static PerlIO*
@@ -373,6 +406,18 @@ tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs) {
     CHECK_ERR( cs_register_esc_strfunc(cs, "js_escape",   tcs_js_escape) );
 }
 
+void*
+tcs_get_struct_ptr(pTHX_ SV* const arg, const char* const klass,
+        const char* const func_fq_name, const char* var_name) {
+    if(SvROK(arg) && sv_derived_from(arg, klass) && SvIOK(SvRV(arg))){
+        return INT2PTR(void*, SvIVX(SvRV(arg)));
+    }
+
+    croak("%s: %s is not of type %s", func_fq_name, var_name, klass);
+    return NULL; /* NOT REACHED */
+}
+
+
 MODULE = Text::ClearSilver    PACKAGE = Text::ClearSilver
 
 PROTOTYPES: DISABLE
@@ -412,17 +457,21 @@ void
 new(SV* klass, ...)
 CODE:
 {
+    HDF* hdf;
     SV* self;
+    HV* hv;
     if(SvROK(klass)){
         croak("Cannot %s->new as an instance method", "Text::ClearSilver");
     }
-
-    /* shift @_ */
-    ax++;
-    items--;
-    self = newRV_inc((SV*)tcs_buildargs(aTHX_ klass, ax, items));
-    sv_2mortal(self);
+    hv    = newHV();
+    self  = sv_2mortal( newRV_noinc((SV*)hv) );
     ST(0) = sv_bless(self, gv_stashsv(klass, GV_ADD));
+
+    CHECK_ERR( hdf_init(&hdf) );
+    sv_setref_pv(*hv_fetchs(hv, "dataset", TRUE), C_HDF, hdf);
+
+    /* ax+1 && items-1 for shift @_ */
+    tcs_configure(aTHX_ self, hv, hdf, ax + 1, items - 1);
     XSRETURN(1);
 }
 
@@ -447,6 +496,15 @@ CODE:
     (void)hv_store_ent(hv, name, newRV_noinc((SV*)av_make(2, pair)), 0U);
 }
 
+void
+dataset(SV* self)
+CODE:
+{
+    ST(0) = *hv_fetchs(tcs_deref_hv(aTHX_ self), "dataset", TRUE);
+    XSRETURN(1);
+}
+
+
 #define DEFAULT_OUT ((SV*)PL_defoutgv)
 
 void
@@ -454,7 +512,6 @@ process(SV* self, SV* src, SV* vars, SV* volatile dest = DEFAULT_OUT, ...)
 CODE:
 {
     dXCPT;
-    HV* volatile args    = NULL;
     CSPARSE*  cs         = NULL;
     HDF*     hdf         = NULL;
     bool need_ifp_close  = FALSE;
@@ -466,30 +523,30 @@ CODE:
         croak("Cannot %s->process as a class method", "Text::ClearSilver");
     }
 
-    if(items > 4){
-        args = tcs_buildargs(aTHX_ self, ax + 4, items - 4);
-    }
-
     SvGETMAGIC(src);
+    SvGETMAGIC(dest);
 
     XCPT_TRY_START {
-        HDF* config = NULL;
+        HV* const hv = tcs_deref_hv(aTHX_ self);
         SV** svp;
+
+        CHECK_ERR( hdf_init(&hdf) );
+
+        CHECK_ERR( hdf_copy(hdf, "", (HDF*)tcs_get_struct_ptr(aTHX_
+            *hv_fetchs(hv, "dataset", TRUE), C_HDF, "Text::ClearSilver::process", "dataset")) );
 
         if(!(SvROK(dest) && SvTYPE(SvRV(dest)) <= SVt_PVMG)) { /* not a scalar ref */
             ofp = tcs_sv2io(aTHX_ dest, "w", O_WRONLY|O_CREAT|O_TRUNC, &need_ofp_close);
         }
 
-        hdf = tcs_new_hdf(aTHX_ vars);
+        tcs_hdf_add(aTHX_ hdf, vars);
 
-        CHECK_ERR( hdf_get_node(hdf, "Config", &config) );
+        /* TODO: input_encoding */
 
-        svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "Config", FALSE);
-        if(svp){
-            tcs_hdf_add(aTHX_ config, *svp);
-        }
-        if(args) {
-            tcs_hdf_add(aTHX_ config, sv_2mortal(newRV_inc((SV*)args)));
+        if(items > 4){
+            HV* const local_hv = newHV();
+            sv_2mortal((SV*)local_hv);
+            tcs_configure(aTHX_ self, local_hv, hdf, ax + 4, items - 4);
         }
 
         CHECK_ERR( cs_init(&cs, hdf) );
@@ -499,15 +556,10 @@ CODE:
 
         /* parse CS template */
         if(SvROK(src)){
-            STRLEN len;
-            const char* pv;
-
             if(SvTYPE(SvRV(src)) > SVt_PVMG){
                 croak("Source must be a scalar reference or a filename, not %"SVf, src);
             }
-            pv   = SvPV_const(SvRV(src), len);
-
-            CHECK_ERR(tcs_parse_string(cs, pv, len));
+            CHECK_ERR(tcs_parse_sv(aTHX_ cs, SvRV(src)));
         }
         else {
             CHECK_ERR( cs_parse_file(cs, SvPV_nolen_const(src)) );

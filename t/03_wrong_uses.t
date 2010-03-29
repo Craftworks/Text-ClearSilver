@@ -60,7 +60,7 @@ note "for Text::ClearSilver";
 eval {
     Text::ClearSilver->new(qw(foo bar baz));
 };
-like $@, qr/Odd number of parameters/, 'parameters';
+like $@, qr/odd number of parameters/, 'parameters';
 
 eval {
     Text::ClearSilver->new([]);
@@ -72,7 +72,7 @@ my $tcs = Text::ClearSilver->new();
 eval {
     $tcs->process($0, {}, \*STDOUT, qw(foo bar baz));
 };
-like $@, qr/Odd number of parameters/;
+like $@, qr/odd number of parameters/;
 
 eval {
     $tcs->process($0, {}, \*STDOUT, []);
