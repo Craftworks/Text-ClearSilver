@@ -10,11 +10,9 @@
 
 NEOERR*
 tcs_output_to_sv(void* vsv, char* s) {
-    dTHX;
-    assert(vsv);
-    assert(s);
 
     if(*s){
+        dTHX;
         SV* const sv     = (SV*)vsv;
         STRLEN const len = strlen(s);
 
@@ -30,12 +28,10 @@ tcs_output_to_sv(void* vsv, char* s) {
 
 NEOERR*
 tcs_output_to_io(void* io, char* s) {
-    dTHX;
     bool ok;
-    assert(io);
-    assert(s);
 
     if(*s){
+        dTHX;
         ENTER;
         SAVETMPS;
 
