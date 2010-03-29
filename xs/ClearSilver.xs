@@ -353,23 +353,6 @@ tcs_deref_hv(pTHX_ SV* const hvref) {
     return (HV*)SvRV(hvref);
 }
 
-
-static NEOERR*
-tcs_html_escape(const char* src, char** out) {
-    return nerr_pass(neos_html_escape(src, strlen(src), out));
-}
-
-static NEOERR*
-tcs_url_escape(const char* src, char** out) {
-    return nerr_pass(neos_url_escape(src, out, NULL /* other */));
-}
-
-static NEOERR*
-tcs_js_escape(const char* src, char** out) {
-    return nerr_pass(neos_js_escape(src, out));
-}
-
-
 void
 tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs) {
 
@@ -400,10 +383,7 @@ tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs) {
     CHECK_ERR( cs_register_function(cs, "sprintf", -1, tcs_sprintf_function) );
 
     /* functions from cgi_register_strfuncs() */
-
-    CHECK_ERR( cs_register_esc_strfunc(cs, "html_escape", tcs_html_escape) );
-    CHECK_ERR( cs_register_esc_strfunc(cs, "url_escape",  tcs_url_escape) );
-    CHECK_ERR( cs_register_esc_strfunc(cs, "js_escape",   tcs_js_escape) );
+    CHECK_ERR( cgi_register_strfuncs(cs) );
 }
 
 void*

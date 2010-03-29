@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use inc::Module::Install;
 use Config;
+use Cwd qw(getcwd);
 
 if(not -x '/bin/sh'){
     warn <<'END_MSG';
@@ -36,10 +37,14 @@ unless(grep { $_ eq '--no-build-cs' } @ARGV){
 
 cc_src_paths qw(xs);
 
+
 cc_include_paths $cs_dir, map{ "$cs_dir/$_" } qw(util cgi cs);
+
+my $cwd = getcwd; # workaround warnings by EU::MM
 cc_append_to_libs
-    [ neo_cs  => "$cs_dir/libs" ], # CSPARSE
-    [ neo_utl => "$cs_dir/libs" ], # HDF and other utils
+    [ neo_cs  => "$cwd/$cs_dir/libs" ], # CSPARSE
+    [ neo_utl => "$cwd/$cs_dir/libs" ], # HDF and other utils
+    [ neo_cgi => "$cwd/$cs_dir/libs" ], # text_html() and html_strip()
 ;
 
 tests_recursive 't', 't/*';
