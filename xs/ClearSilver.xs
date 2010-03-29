@@ -219,7 +219,7 @@ tcs_parse_sv(pTHX_ CSPARSE* const parse, SV* const sv) {
     /* ClearSilver can access ibuf out of range of memory :(
        so extra some memory must be allocated.
     */
-    static const size_t extra_memory = 10;
+    static const size_t extra_memory = 8;
     char* const ibuf = (char*)calloc(str_len + extra_memory, sizeof(char));
     if(ibuf == NULL){
         return nerr_raise (NERR_NOMEM,
@@ -571,6 +571,7 @@ CODE:
         }
         else {
             sv_setpvs(SvRV(dest), "");
+            (void)SvGROW(SvRV(dest), 80);
             CHECK_ERR( cs_render(cs, SvRV(dest), tcs_output_to_sv) );
         }
     }

@@ -9,13 +9,20 @@
 #include "Text-ClearSilver.h"
 
 NEOERR*
-tcs_output_to_sv(void* sv, char* s) {
+tcs_output_to_sv(void* vsv, char* s) {
     dTHX;
-    assert(sv);
+    assert(vsv);
     assert(s);
 
     if(*s){
-        sv_catpv((SV*)sv, s);
+        SV* const sv     = (SV*)vsv;
+        STRLEN const len = strlen(s);
+
+        if((SvLEN(sv) - SvCUR(sv)) <= len) {
+            sv_grow(sv, SvLEN(sv) * 2 + len);
+        }
+
+        sv_catpvn(sv, s, len);
     }
 
     return STATUS_OK;
