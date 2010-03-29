@@ -4,6 +4,8 @@ use strict;
 use Fatal qw(chdir);
 use Config;
 
+my $cs_dir = shift(@ARGV) || die "Usage: $0 CS_BUILD_DIRECTRY\n";
+
 my @configure_args = qw(
     --disable-compression
     --disable-apache
@@ -15,9 +17,7 @@ my @configure_args = qw(
     --enable-gettext
 );
 
-#xsystem('patch', 'clearsilver/cs/csparse.c', 'tool/csparse.patch');
-
-chdir 'clearsilver';
+chdir $cs_dir;
 
 # for configure
 $ENV{CC}      = $Config{cc};

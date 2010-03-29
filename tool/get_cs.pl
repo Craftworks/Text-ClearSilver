@@ -10,7 +10,9 @@ use Archive::Tar;
 use File::Find qw(find);
 use Text::Patch qw(patch);
 
-my $version = shift || '0.10.5';
+my $cs_dir = shift(@ARGV) || die "Usage: $0 CS_BUILD_DIRECTRY\n";
+
+my $version = shift(@ARGV) || '0.10.5';
 
 print "getting the ClearSilver distribution ...\n";
 my $distfile = "clearsilver.tar.gz";
@@ -22,8 +24,8 @@ mirror(
 print "extracting from $distfile ...\n";
 Archive::Tar->extract_archive($distfile);
 
-remove_tree "clearsilver";
-rename "clearsilver-$version" => "clearsilver";
+remove_tree $cs_dir;
+rename "clearsilver-$version" => $cs_dir;
 
 my @patches;
 find sub{
@@ -37,7 +39,7 @@ foreach my $patch(@patches) {
     print "patching $patch ...\n";
 
     my $source = $patch;
-    $source =~ s/^patch/clearsilver/;
+    $source =~ s/^patch/$cs_dir/;
     $source =~ s/\.patch$//;
 
     if(not -f $source) {

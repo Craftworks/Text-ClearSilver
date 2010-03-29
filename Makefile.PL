@@ -26,22 +26,27 @@ cc_warnings;
 test_requires 'Test::More' => 0.88; # done_testing()
 test_requires 'Test::Requires';
 
+# must not 'ClearSilver' nor 'clearsilver', which confuses EU::MM
+my $cs_dir = 'cs';
+
 unless(grep { $_ eq '--no-build-cs' } @ARGV){
-    system $^X, 'tool/get_cs.pl' if not -e 'clearsilver';
-    system $^X, 'tool/build_cs.pl';
+    system $^X, 'tool/get_cs.pl',   $cs_dir if not -e $cs_dir;
+    system $^X, 'tool/build_cs.pl', $cs_dir;
 }
 
 cc_src_paths qw(xs);
 
-cc_include_paths qw(clearsilver clearsilver/util clearsilver/cgi clearsilver/cs);
+cc_include_paths $cs_dir, map{ "$cs_dir/$_" } qw(util cgi cs);
 cc_append_to_libs
-    [ neo_cs  => 'clearsilver/libs' ], # CSPARSE
-    [ neo_utl => 'clearsilver/libs' ], # HDF and other utils
+    [ neo_cs  => "$cs_dir/libs" ], # CSPARSE
+    [ neo_utl => "$cs_dir/libs" ], # HDF and other utils
 ;
 
 tests_recursive 't', 't/*';
 
 auto_set_repository() if -d '.git';
+
+no_index directly => [$cs_dir, qw(tool patch)];
 
 clean_files qw(
     Text-ClearSilver-* *.stackdump
@@ -50,7 +55,7 @@ clean_files qw(
     cover_db
 );
 
-realclean_files 'clearsilver';
+realclean_files $cs_dir;
 
 WriteAll(check_nmake => 0);
 
