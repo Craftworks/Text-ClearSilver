@@ -130,7 +130,9 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen) 
     }
 
     set_sv:
-    CHECK_ERR( hdf_set_value(hdf, SvPV_nolen_const(key), SvPV_nolen_const(sv)) );
+    if(SvOK(sv)) {
+        CHECK_ERR( hdf_set_value(hdf, SvPV_nolen_const(key), SvPV_nolen_const(sv)) );
+    }
     /* warn("set %"SVf"=%"SVf"", key, sv); // */
 }
 
