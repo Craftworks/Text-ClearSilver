@@ -4,8 +4,8 @@ use 5.008_001;
 use strict;
 
 
-#use version(); our $VERSION = version->new('0.10.5.0');
-our $VERSION =                              '0.10.5.0'; # workaround ShipIt 0.55
+#use version(); our $VERSION = version->new('0.10.5.1');
+our $VERSION =                              '0.10.5.1'; # workaround ShipIt 0.55
 #                                            ^^^^^^      ClearSilver core version
 #                                                  ^^    Text::ClearSilver version
 
