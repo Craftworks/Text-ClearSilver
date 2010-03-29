@@ -190,10 +190,6 @@ Returns the first child of the dataset.
 
 Returns the next node of the dataset.
 
-=head3 B<< $hdf->obj_top :HDF >>
-
-Returns the top node of the node, which is returned by C<new>.
-
 =head3 B<< $hdf->obj_name :Str >>
 
 Returns the name of the node.
