@@ -98,43 +98,91 @@ Registers a named function in the TCS processor.
 If you set the number of arguments E<gt>= 0, it will be checked at parsing
 time, rather than runtime.
 
-Note that Text::ClearSilver defines some builtin functions:
+Note that Text::ClearSilver defines some builtin functions,
+and you cannot re-define them.
+
+Builtin functions are as follows:
 
 =over 4
 
-=item C<subcount(node)>
+=item C<subcount(var)>
 
-=item C<name(var)>
+Returns the number of child nodes for the HDF variable.
 
-=item C<first(var)>
+=item C<len(var)>
 
-=item C<last(var)>
+A synonym to C<subcount()>.
+
+=item C<name(local)>
+
+Returns the HDF variable name for a local variable alias.
+
+=item C<first(lolca)>
+
+Returns true if and only if the local variable is the first in a loop or each.
+
+=item C<last(local)>
+
+Returns true if and only if the local variable is the last in a loop or each.
 
 =item C<abs(num)>
 
+Returns the absolute value of the numeric expressions.
+
 =item C<max(num1, num2)>
+
+Returns the larger of two numeric expressions.
 
 =item C<min(num1, num2)>
 
+Returns the smaller of two numeric expressions.
+
 =item C<string.slice(expr, start, end)>
+
+Returns the string slice starting at start and ending at end.
 
 =item C<string.find(expr, substr)>
 
+Returns the numeric position of the substring in the string (if found),
+otherwise returns -1.
+
 =item C<string.length(expr)>
+
+Returns the length of the string expression.
 
 =item C<_(expr)>
 
+Only available if the system supports gettext(3), returns the translated
+version of the string expression as returned by gettext().
+
 =item C<html_escape(expr)>
+
+Tries HTML escapes to the string expression. This converts characters such as
+E<gt>, E<lt>, and E<amp>, into their HTML entities such as E<amp>gt;,
+E<amp>lt;, and E<amp>amp;.
 
 =item C<url_escape(expr)>
 
+Tries URL encodes to the string expression. This converts characters such as
+?, E<amp>, and = into their URL safe equivalents using the %hh syntax.
+
 =item C<js_escape(expr)>
+
+Tries JavaScript escapes to the string expression into valid data for placement
+into a JavaScript string. This converts characters such as E<quot>, ', and E<92> into their
+JavaScript string safe equivalents E<92>E<quot>,  E<92>', and  E<92>E<92>.
 
 =item C<sprintf(fmt, ...)>
 
-=back
+Returns a string formatted by Perl builtin C<sprintf> function.
 
-and you cannot re-define these builtins.
+For example:
+
+    <?cs var:sprintf("%2$s %1$s", "foo", "bar") ?> # => "bar foo"
+
+See L<perlfunc/sprintf> for details.
+
+=back
 
 =head3 C<< $tcs->process($source, $data, ?$output, %config) :Void >>
 
@@ -157,8 +205,24 @@ data structure.
 Creates a HDF dataset and initializes it with I<$hdf_source>, which
 may be a reference to data structure or an HDF string.
 
-Note that any scalar values, including blessed references, will be simply
+Notes:
+
+=over 4
+
+=item *
+
+that any scalar values, including blessed references, will be simply
 stringified.
+
+=item *
+
+C<undef> is simply ignored.
+
+=item *
+
+Cyclic references will not be converted correctly (TODO).
+
+=back
 
 =head3 B<< $hdf->add($hdf_source) :Void >>
 
