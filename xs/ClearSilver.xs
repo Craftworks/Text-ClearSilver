@@ -60,13 +60,16 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
         if(svp){
             SV* const stat_buf = AvARRAY(SvRV(*svp))[0];
             SV* const file_buf = AvARRAY(SvRV(*svp))[1];
+            Stat_t* stp_cache;
 
             if(PerlLIO_stat(filename, &st) < 0) {
                 return nerr_raise(NERR_IO, "Failed to stat(%s): %s", filename, Strerror(errno));
             }
             stat_ok = TRUE;
 
-            if(memEQ(&st, SvPVX(stat_buf), sizeof(st))) {
+            assert(SvCUR(stat_buf) == sizeof(Stat_t));
+            stp_cache = (Stat_t*)SvPVX(stat_buf);
+            if(st.st_size == stp_cache->st_size && st.st_mtime == stp_cache->st_mtime) {
                 assert(SvCUR(file_buf) == st.st_size);
 
                 *contents = (char*)malloc(st.st_size + extra_bytes);

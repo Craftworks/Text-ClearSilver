@@ -6,7 +6,7 @@ use SelectSaver;
 
 use Text::ClearSilver;
 
-for(1 .. 2){
+for(1 .. 10){
     note $_;
 
     my $tcs = Text::ClearSilver->new();
