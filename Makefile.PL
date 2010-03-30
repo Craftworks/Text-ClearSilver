@@ -60,7 +60,5 @@ clean_files qw(
     cover_db
 );
 
-realclean_files $cs_dir;
-
 WriteAll(check_nmake => 0);
 
