@@ -198,6 +198,10 @@ or scalar reference. If the third parameter is omitted, the default filehandle
 will be used. Optional I<%config> are stored into C<Config.*>, i.e.
 C<< VarEscapeMode => 'html' >> changes the escaping mode temporally.
 
+=head3 C<< $tcs->clear_cache :HASH >>
+
+Clears the global file cache, and returns the old cache.
+
 =head2 The Text::ClearSilver::HDF class
 
 This is a low-level interface to the C<< HDF* >> (Hierarchial Data Format)

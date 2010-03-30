@@ -693,3 +693,17 @@ CODE:
 }
 
 
+void
+clear_cache(self)
+CODE:
+{
+    dMY_CXT;
+    if(MY_CXT.file_cache){
+        ST(0) = sv_2mortal(newRV_noinc((SV*)MY_CXT.file_cache));
+        MY_CXT.file_cache = newHV();
+    }
+    else {
+        ST(0) = &PL_sv_undef;
+    }
+    XSRETURN(1);
+}

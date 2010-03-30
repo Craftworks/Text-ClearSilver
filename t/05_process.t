@@ -60,6 +60,13 @@ for(1 .. 10){
         open my $in, '<', 't/data/basic.gold' or die $!;
         scalar <$in>;
     }, 'load_path';
+
+    if($_ == 5) {
+        my $old_cache = $tcs->clear_cache;
+
+        ok ref($old_cache), 'HASH';
+        is join(' ', keys %{$old_cache}), 't/data/basic.tcs', 'clear_cache';
+    }
 }
 
 done_testing;
