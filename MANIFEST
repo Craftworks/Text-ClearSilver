@@ -1,7 +1,13 @@
+benchmark/cs_ht.pl
+benchmark/data/var.hdf
+benchmark/data/var.pl
+benchmark/data_test.pl
 benchmark/funcs.pl
+benchmark/large.pl
 benchmark/simple.pl
-benchmark/test.cs
-benchmark/test.pl
+benchmark/template/index.cs
+benchmark/template/simple.cs
+benchmark/template/simple.ht
 Changes
 cs/acconfig.h
 cs/aclocal.m4
@@ -450,7 +456,6 @@ t/data/basic.tcs
 Text-ClearSilver.h
 tool/build_cs.pl
 tool/get_cs.pl
-var.hdf
 xs/ClearSilver.xs
 xs/CSPARSE.xs
 xs/HDF.xs
