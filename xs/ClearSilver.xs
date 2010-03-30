@@ -21,6 +21,11 @@ tcs_get_my_cxtp(pTHX) {
     return &MY_CXT;
 }
 
+/* ClearSilver can access ibuf out of range of memory :(
+   so extra some memory must be allocated for cs_parse_string().
+*/
+static const size_t extra_bytes = 8;
+
 /*
     NOTE: Currently, file_cache is always enabled, although it can be disabled.
  */
@@ -34,7 +39,6 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
     char fpath[_POSIX_PATH_MAX];
     Stat_t st;
     bool stat_ok = FALSE;
-    size_t const extra_bytes = 8;
 
     /* find file */
     if (filename[0] != '/') {
@@ -320,11 +324,8 @@ NEOERR*
 tcs_parse_sv(pTHX_ CSPARSE* const parse, SV* const sv) {
     STRLEN str_len;
     const char* const str = SvPV_const(sv, str_len);
-    /* ClearSilver can access ibuf out of range of memory :(
-       so extra some memory must be allocated.
-    */
-    static const size_t extra_memory = 8;
-    char* const ibuf = (char*)calloc(str_len + extra_memory, sizeof(char));
+
+    char* const ibuf = (char*)malloc(str_len + extra_bytes);
     if(ibuf == NULL){
         return nerr_raise (NERR_NOMEM,
             "Unable to allocate memory");
