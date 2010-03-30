@@ -7,6 +7,8 @@ use Text::ClearSilver;
 use ClearSilver;
 use Data::ClearSilver::HDF;
 
+print "Text::ClearSilver/$Text::ClearSilver::VERSION\n";
+
 my $vars      = do 'benchmark/data/var.pl' or die "cannot load data: $!$@";
 my @load_path = qw(benchmark/template);
 my $template  = 'index.cs';

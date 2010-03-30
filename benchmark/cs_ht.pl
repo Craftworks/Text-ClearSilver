@@ -6,6 +6,8 @@ use Config; printf "Perl/%vd on %s\n", $^V, $Config{archname};
 use Text::ClearSilver;
 use HTML::Template::Pro;
 
+print "Text::ClearSilver/$Text::ClearSilver::VERSION\n";
+
 my $vars      = {
     hoge => 1,
     fuga => "fuga",

@@ -6,6 +6,8 @@ use Text::ClearSilver;
 use ClearSilver;
 use Data::ClearSilver::HDF;
 
+print "Text::ClearSilver/$Text::ClearSilver::VERSION\n";
+
 my $template_builtin_sprintf = <<'CS_END';
 Hello, <?cs var:sprintf('%s %s %s', lang, lang, lang) ?> world!
 CS_END
