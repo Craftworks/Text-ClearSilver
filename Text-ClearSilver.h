@@ -64,6 +64,9 @@ tcs_output_to_sv(void* io, char* s);
 typedef struct {
     HV* functions;
     SV* sort_cmp_cb;
+
+    HV* file_cache;
+    const char* input_layer;
 } my_cxt_t;
 
 my_cxt_t*

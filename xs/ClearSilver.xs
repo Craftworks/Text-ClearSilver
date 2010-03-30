@@ -21,6 +21,110 @@ tcs_get_my_cxtp(pTHX) {
     return &MY_CXT;
 }
 
+/*
+    NOTE: Currently, file_cache is always enabled, although it can be disabled.
+ */
+
+static NEOERR*
+tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const contents) {
+    dTHX;
+    dMY_CXT;
+    I32 filename_len;
+    NEOERR* err = STATUS_OK;
+    char fpath[_POSIX_PATH_MAX];
+    Stat_t st;
+    bool stat_ok = FALSE;
+    size_t const extra_bytes = 8;
+
+    /* find file */
+    if (filename[0] != '/') {
+        err = hdf_search_path (hdf, filename, fpath);
+        if (((CSPARSE*)vcsparse)->global_hdf && nerr_handle(&err, NERR_NOT_FOUND)) {
+            err = hdf_search_path(((CSPARSE*)vcsparse)->global_hdf, filename, fpath);
+        }
+        if (err != STATUS_OK) return nerr_pass(err);
+
+        filename      = fpath;
+    }
+    filename_len = strlen(filename);
+
+    /* check cache */
+    if(MY_CXT.file_cache){
+        Stat_t st;
+        SV** const svp = hv_fetch(MY_CXT.file_cache, filename, filename_len, FALSE);
+
+        if(svp){
+            SV* const stat_buf = AvARRAY(SvRV(*svp))[0];
+            SV* const file_buf = AvARRAY(SvRV(*svp))[1];
+
+            if(PerlLIO_stat(filename, &st) < 0) {
+                return nerr_raise(NERR_IO, "Failed to stat(%s): %s", filename, Strerror(errno));
+            }
+            stat_ok = TRUE;
+
+            if(memEQ(&st, SvPVX(stat_buf), sizeof(st))) {
+                assert(SvCUR(file_buf) == st.st_size);
+
+                *contents = (char*)malloc(st.st_size + extra_bytes);
+                Copy(SvPVX(file_buf), *contents, st.st_size + 1, char);
+                return STATUS_OK;
+            }
+        }
+    }
+
+    /* load file normally */
+    if(!(stat_ok || PerlLIO_stat(filename, &st) >= 0)) {
+        return nerr_raise(NERR_IO, "Failed to stat(%s): %s", filename, Strerror(errno));
+    }
+
+    ENTER;
+    SAVETMPS;
+    {
+        SV* namesv = newSVpvn_flags(filename, filename_len, SVs_TEMP);
+        SV* file_buf;
+        SSize_t read_bytes;
+        PerlIO* const ifp =  PerlIO_openn(aTHX_
+            MY_CXT.input_layer, "r", -1, O_RDONLY, 0, NULL, 1, &namesv);
+
+        if(!ifp){
+            err = nerr_raise(NERR_IO, "Failed to open %s: %s", filename, Strerror(errno));
+            goto cleanup;
+        }
+
+        file_buf = sv_2mortal(newSV(st.st_size));
+
+        read_bytes = PerlIO_read(ifp, SvPVX(file_buf), st.st_size);
+        PerlIO_close(ifp);
+        if(read_bytes != st.st_size) {
+            err = nerr_raise(NERR_IO, "Failed to read (read: %ld bytes, expected %ld bytes)",
+                (long)read_bytes, (long)st.st_size);
+            goto cleanup;
+        }
+
+        SvPOK_on(file_buf);
+        SvCUR_set(file_buf, read_bytes);
+        *SvEND(file_buf) = '\0';
+
+        *contents = (char*)malloc(read_bytes + extra_bytes);
+        Copy(SvPVX(file_buf), *contents, read_bytes + 1, char);
+
+        if(MY_CXT.file_cache){
+            SV* cache_entry[2];
+
+            cache_entry[0] = newSVpvn((const char*)&st, sizeof(st));
+            cache_entry[1] = SvREFCNT_inc_simple_NN(file_buf);
+
+            (void)hv_store(MY_CXT.file_cache, filename, filename_len,
+                newRV_noinc((SV*)av_make(2, cache_entry)), 0U);
+        }
+    }
+
+    cleanup:
+    FREETMPS;
+    LEAVE;
+    return err;
+}
+
 /* in csparse.c */
 NEOERR*
 tcs_eval_expr(CSPARSE* parse, CSARG* arg, CSARG* result);
@@ -409,6 +513,8 @@ BOOT:
     MY_CXT_INIT;
     MY_CXT.sort_cmp_cb = NULL;
     MY_CXT.functions   = NULL;
+    MY_CXT.input_layer = NULL;
+    MY_CXT.file_cache  = newHV();
 
     PUSHMARK(SP);
     boot_Text__ClearSilver__HDF(aTHX_ cv);
@@ -428,6 +534,8 @@ CODE:
     MY_CXT_CLONE;
     MY_CXT.sort_cmp_cb = NULL;
     MY_CXT.functions   = NULL;
+    MY_CXT.input_layer = NULL;
+    MY_CXT.file_cache  = newHV();
     PERL_UNUSED_VAR(items);
 }
 
@@ -507,7 +615,9 @@ CODE:
     SvGETMAGIC(dest);
 
     XCPT_TRY_START {
+        dMY_CXT;
         HV* const hv = tcs_deref_hv(aTHX_ self);
+        const char* input_layer;
         SV** svp;
 
         CHECK_ERR( hdf_init(&hdf) );
@@ -521,18 +631,29 @@ CODE:
 
         tcs_hdf_add(aTHX_ hdf, vars);
 
-        /* TODO: input_encoding */
-
+        svp = NULL;
         if(items > 4){
             HV* const local_hv = newHV();
             sv_2mortal((SV*)local_hv);
             tcs_configure(aTHX_ self, local_hv, hdf, ax + 4, items - 4);
+
+            svp = hv_fetchs(local_hv, "input_layer", FALSE);
         }
+        if(!svp){
+            svp = hv_fetchs(hv, "input_layer", FALSE);
+        }
+        input_layer = svp ? SvPV_nolen_const(*svp) : NULL;
+
 
         CHECK_ERR( cs_init(&cs, hdf) );
 
         svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "functions", FALSE);
         tcs_register_funcs(aTHX_ cs, svp ? tcs_deref_hv(aTHX_ *svp) : NULL);
+
+        cs_register_fileload(cs, cs, tcs_fileload);
+
+        SAVEVPTR(MY_CXT.input_layer);
+        MY_CXT.input_layer = input_layer;
 
         /* parse CS template */
         if(SvROK(src)){
