@@ -648,7 +648,7 @@ CODE:
 
         CHECK_ERR( cs_init(&cs, hdf) );
 
-        svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "functions", FALSE);
+        svp = hv_fetchs(hv, "functions", FALSE);
         tcs_register_funcs(aTHX_ cs, svp ? tcs_deref_hv(aTHX_ *svp) : NULL);
 
         cs_register_fileload(cs, cs, tcs_fileload);

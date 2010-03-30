@@ -146,9 +146,11 @@ tcs_hdf_add(pTHX_ HDF* const hdf, SV* const sv) {
             CHECK_ERR( hdf_copy(hdf, "" /* root */, INT2PTR(HDF*, SvIVX(SvRV(sv)) )) );
         }
         else {
-            SV* const key  = newSVpvs_flags("", SVs_TEMP);
+            SV* const key  = newSV(80);
             HV* const seen = newHV();
             sv_2mortal((SV*)seen);
+            sv_2mortal(key);
+            sv_setpvs(key, "");
 
             tcs_hdf_walk(aTHX_ hdf, key, sv, seen);
         }
