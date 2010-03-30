@@ -3,7 +3,10 @@ package Text::ClearSilver;
 use 5.008_001;
 use strict;
 
-our $VERSION = '0.001';
+use version(); our $VERSION = version->new('0.10.5.0');
+#                                           ^^^^^^      ClearSilver core version
+#                                                 ^^    Text::ClearSilver version
+
 
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -17,7 +20,7 @@ Text::ClearSilver - Perl interface to the ClearSilver template engine
 
 =head1 VERSION
 
-This document describes Text::ClearSilver version 0.001.
+This document describes Text::ClearSilver version v0.10.5.0.
 
 =head1 SYNOPSIS
 
