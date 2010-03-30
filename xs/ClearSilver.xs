@@ -247,7 +247,7 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* const 
 
     if(sv_true(ERRSV)){
         err =  nerr_raise(NERR_ASSERT,
-            "Function %s() died: %s", csf->name, SvPVx_nolen_const(ERRSV));
+            "Function %s() died: %s", csf->name, SvPV_nolen_const(ERRSV));
         goto cleanup;
     }
 
