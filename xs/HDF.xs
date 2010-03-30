@@ -142,11 +142,16 @@ tcs_hdf_add(pTHX_ HDF* const hdf, SV* const sv) {
     SvGETMAGIC(sv);
 
     if(SvROK(sv)){
-        SV* const key  = newSVpvs_flags("", SVs_TEMP);
-        HV* const seen = newHV();
-        sv_2mortal((SV*)seen);
+        if(SvOBJECT(SvRV(sv)) && SvIOK(SvRV(sv)) && sv_derived_from(sv, C_HDF)) {
+            CHECK_ERR( hdf_copy(hdf, "" /* root */, INT2PTR(HDF*, SvIVX(SvRV(sv)) )) );
+        }
+        else {
+            SV* const key  = newSVpvs_flags("", SVs_TEMP);
+            HV* const seen = newHV();
+            sv_2mortal((SV*)seen);
 
-        tcs_hdf_walk(aTHX_ hdf, key, sv, seen);
+            tcs_hdf_walk(aTHX_ hdf, key, sv, seen);
+        }
     }
     else if(SvOK(sv)){
         CHECK_ERR( hdf_read_string(hdf, SvPV_nolen_const(sv)) );

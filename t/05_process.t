@@ -48,4 +48,14 @@ is $out, '&lt;bar&gt;', 'config in place';
 $tcs->process(\'<?tcs var:common_var ?>', {}, \$out);
 is $out, 'ok', 'dataset from instance';
 
+my $hdf = Text::ClearSilver::HDF->new();
+$hdf->read_file('t/data/basic.hdf');
+$tcs->process('basic.tcs', $hdf, \$out, load_path => ['t/data'], TagStart => 'cs');
+
+is $out, do{
+    local $/;
+    open my $in, '<', 't/data/basic.gold' or die $!;
+    scalar <$in>;
+}, 'load_path';
+
 done_testing;
