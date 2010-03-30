@@ -51,7 +51,7 @@ tests_recursive 't', 't/*';
 
 auto_set_repository() if -d '.git';
 
-no_index directory => [$cs_dir, qw(tool patch)];
+no_index directory => $cs_dir, qw(tool patch);
 
 clean_files qw(
     Text-ClearSilver-* *.stackdump
