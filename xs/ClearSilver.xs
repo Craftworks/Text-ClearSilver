@@ -58,22 +58,19 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
         SV** const svp = hv_fetch(MY_CXT.file_cache, filename, filename_len, FALSE);
 
         if(svp){
-            SV* const stat_buf = AvARRAY(SvRV(*svp))[0];
-            SV* const file_buf = AvARRAY(SvRV(*svp))[1];
-            Stat_t* stp_cache;
+            SV* const mtime_cache    = AvARRAY(SvRV(*svp))[0];
+            SV* const contents_cache = AvARRAY(SvRV(*svp))[1];
 
             if(PerlLIO_stat(filename, &st) < 0) {
                 return nerr_raise(NERR_IO, "Failed to stat(%s): %s", filename, Strerror(errno));
             }
             stat_ok = TRUE;
 
-            assert(SvCUR(stat_buf) == sizeof(Stat_t));
-            stp_cache = (Stat_t*)SvPVX(stat_buf);
-            if(st.st_size == stp_cache->st_size && st.st_mtime == stp_cache->st_mtime) {
-                assert(SvCUR(file_buf) == st.st_size);
-
+            assert(SvIOK(mtime_cache));
+            assert(SvPOK(contents_cache));
+            if(st.st_size == SvCUR(contents_cache) && st.st_mtime == SvIVX(mtime_cache)) {
                 *contents = (char*)malloc(st.st_size + extra_bytes);
-                Copy(SvPVX(file_buf), *contents, st.st_size + 1, char);
+                Copy(SvPVX(contents_cache), *contents, st.st_size + 1, char);
                 return STATUS_OK;
             }
         }
@@ -116,9 +113,9 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
         Copy(SvPVX(file_buf), *contents, read_bytes + 1, char);
 
         if(MY_CXT.file_cache){
-            SV* cache_entry[2];
+            SV* cache_entry[2]; /* mtime, contents */
 
-            cache_entry[0] = newSVpvn((const char*)&st, sizeof(st));
+            cache_entry[0] = newSViv(st.st_mtime);
             cache_entry[1] = SvREFCNT_inc_simple_NN(file_buf);
 
             (void)hv_store(MY_CXT.file_cache, filename, filename_len,
