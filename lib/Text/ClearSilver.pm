@@ -22,7 +22,7 @@ Text::ClearSilver - Perl interface to the ClearSilver template engine
 
 =head1 VERSION
 
-This document describes Text::ClearSilver version v0.10.5.0.
+This document describes Text::ClearSilver version v0.10.5.1.
 
 =head1 SYNOPSIS
 
