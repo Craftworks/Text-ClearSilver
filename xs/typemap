@@ -21,3 +21,4 @@ T_TCS_PTR
 
 T_TCS_NEOERR
     CHECK_ERR($var);
+    sv_setiv($arg, TRUE);
