@@ -38,14 +38,14 @@ This document describes Text::ClearSilver version v0.10.5.1.
         dataset   => { common_foo => 'value' },
     );
 
-    $cs->register_function( lcfirst => sub{ lcfirst $_[0] } );
+    $cs->register_function( ucfirst => sub{ ucfirst $_[0] } );
 
     my %vars = (
         foo => 'bar',         # as var:foo
         baz => { qux => 42 }, # as var:baz.qux
     );
 
-    $cs->process(\q{<?cs var:lcfirst(foo) ?>}, \%vars); # => Bar
+    $cs->process(\q{<?cs var:ucfirst(foo) ?>}, \%vars); # => Bar
 
 =head1 DESCRIPTION
 
