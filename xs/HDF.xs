@@ -137,6 +137,7 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen, 
         if( (SvTYPE(sv) & SVf_OK) == SVf_IOK  && PERL_ABS(SvIVX(sv)) <= PERL_LONG_MAX ) {
             err = hdf_set_int_value(hdf, SvPV_nolen_const(key), (long)SvIVX(sv));
         }
+#if 0
         else if(utf8){ /* ensure template variables are utf8-encoded bytes */
             STRLEN keylen;
             STRLEN vallen;
@@ -160,6 +161,7 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen, 
              if(keypv_allocated) Safefree(keypv);
              if(valpv_allocated) Safefree(valpv);
         }
+#endif
         else {
             err = hdf_set_value(hdf, SvPV_nolen_const(key), SvPV_nolen_const(sv));
         }
