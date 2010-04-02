@@ -347,6 +347,27 @@ tcs_throw_error(pTHX_ NEOERR* const err) {
     Perl_croak(aTHX_ "ClearSilver: %"SVf, sv);
 }
 
+
+static CV*
+tcs_sv2cv(pTHX_ SV* const func) {
+    HV* stash; /* unused */
+    GV* gv;    /* unused */
+    CV* const cv = sv_2cv(func, &stash, &gv, 0);
+    if(!cv){
+        croak("Not a CODE reference");
+    }
+    return cv;
+}
+
+static HV*
+tcs_deref_hv(pTHX_ SV* const hvref) {
+    if(!(SvROK(hvref) && SvTYPE(SvRV(hvref)) == SVt_PVHV)) {
+        croak("Not a HASH reference");
+    }
+    return (HV*)SvRV(hvref);
+}
+
+
 static const char*
 tcs_get_class_name(pTHX_ SV* const self) {
     if(SvROK(self) && SvOBJECT(SvRV(self))){
@@ -358,6 +379,12 @@ tcs_get_class_name(pTHX_ SV* const self) {
     }
 }
 
+static bool
+tcs_is_utf8(pTHX_ SV* const tcs) {
+    SV** const svp = hv_fetchs(tcs_deref_hv(aTHX_ tcs), "utf8", FALSE);
+    return svp ? sv_true(*svp) : FALSE;
+}
+
 static void
 tcs_set_config(pTHX_ SV* const self, HV* const hv, HDF* const hdf, SV* const key, SV* const val) {
     const char* const keypv = SvPV_nolen_const(key);
@@ -367,18 +394,28 @@ tcs_set_config(pTHX_ SV* const self, HV* const hv, HDF* const hdf, SV* const key
         CHECK_ERR( hdf_set_value(config, keypv, SvPV_nolen_const(val)) );
     }
     else { /* extended config */
-        if(strEQ(keypv, "input_encoding")) {
-            /* TODO */
-            (void)hv_store_ent(hv, key, newSVsv(val), 0U);
+        if(strEQ(keypv, "encoding")) {
+            const char* const valpv = SvPV_nolen_const(val);
+            bool utf8;
+            if(strEQ(valpv, "utf8")){
+                utf8 = TRUE;
+            }
+            else if(strEQ(valpv, "bytes")){
+                utf8 = FALSE;
+            }
+            else {
+                croak("ClearSilver: encoding must be 'utf8' or 'bytes', not '%s'", valpv);
+            }
+            (void)hv_stores(hv, "utf8", newSViv(utf8));
         }
         else if(strEQ(keypv, "dataset")) {
-            tcs_hdf_add(aTHX_ hdf, val);
+            tcs_hdf_add(aTHX_ hdf, val, tcs_is_utf8(aTHX_ self));
         }
         else if(strEQ(keypv, "load_path")) {
             HDF* loadpaths;
             CHECK_ERR( hdf_get_node(hdf, "hdf.loadpaths", &loadpaths) );
 
-            tcs_hdf_add(aTHX_ loadpaths, val);
+            tcs_hdf_add(aTHX_ loadpaths, val, tcs_is_utf8(aTHX_ self));
         }
         else if(ckWARN(WARN_MISC)) {
             Perl_warner(aTHX_ packWARN(WARN_MISC), "%s: unknown configuration variable '%s'",
@@ -437,25 +474,6 @@ tcs_sv2io(pTHX_ SV* sv, const char* const mode, int const imode, bool* const nee
         *need_closep = TRUE;
         return fp;
     }
-}
-
-static CV*
-tcs_sv2cv(pTHX_ SV* const func) {
-    HV* stash; /* unused */
-    GV* gv;    /* unused */
-    CV* const cv = sv_2cv(func, &stash, &gv, 0);
-    if(!cv){
-        croak("Not a CODE reference");
-    }
-    return cv;
-}
-
-static HV*
-tcs_deref_hv(pTHX_ SV* const hvref) {
-    if(!(SvROK(hvref) && SvTYPE(SvRV(hvref)) == SVt_PVHV)) {
-        croak("Not a HASH reference");
-    }
-    return (HV*)SvRV(hvref);
 }
 
 void
@@ -607,6 +625,7 @@ CODE:
     bool need_ofp_close  = FALSE;
     PerlIO* volatile ifp = NULL;
     PerlIO* volatile ofp = NULL;
+    bool utf8            = FALSE;
 
     if(!( SvROK(self) && SvOBJECT(SvRV(self)) )){
         croak("Cannot %s->process as a class method", "Text::ClearSilver");
@@ -619,7 +638,7 @@ CODE:
         dMY_CXT;
         HV* const hv = tcs_deref_hv(aTHX_ self);
         const char* input_layer;
-        SV** svp;
+         SV** svp;
 
         CHECK_ERR( hdf_init(&hdf) );
 
@@ -630,7 +649,7 @@ CODE:
             ofp = tcs_sv2io(aTHX_ dest, "w", O_WRONLY|O_CREAT|O_TRUNC, &need_ofp_close);
         }
 
-        tcs_hdf_add(aTHX_ hdf, vars);
+        utf8 = tcs_is_utf8(aTHX_ self);
 
         svp = NULL;
         if(items > 4){
@@ -638,13 +657,28 @@ CODE:
             sv_2mortal((SV*)local_hv);
             tcs_configure(aTHX_ self, local_hv, hdf, ax + 4, items - 4);
 
+            svp = hv_fetchs(local_hv, "utf8", FALSE);
+            if(svp) {
+                utf8 = sv_true(*svp);
+            }
+
             svp = hv_fetchs(local_hv, "input_layer", FALSE);
         }
         if(!svp){
             svp = hv_fetchs(hv, "input_layer", FALSE);
         }
-        input_layer = svp ? SvPV_nolen_const(*svp) : NULL;
 
+        if(svp) {
+            input_layer = SvPV_nolen_const(*svp);
+        }
+        else if(utf8) {
+            input_layer = ":utf8";
+        }
+        else {
+            input_layer = NULL;
+        }
+
+        tcs_hdf_add(aTHX_ hdf, vars, utf8);
 
         CHECK_ERR( cs_init(&cs, hdf) );
 
@@ -669,10 +703,16 @@ CODE:
 
         /* render */
         if(ofp) {
+            if(utf8 && !PerlIO_isutf8(ofp)) {
+                PerlIO_binmode(aTHX_ ofp, '>', O_TEXT, ":utf8");
+            }
             CHECK_ERR( cs_render(cs, ofp, tcs_output_to_io) );
         }
         else {
             sv_setpvs(SvRV(dest), "");
+            if(utf8) {
+                SvUTF8_on(SvRV(dest));
+            }
             CHECK_ERR( cs_render(cs, SvRV(dest), tcs_output_to_sv) );
         }
     }

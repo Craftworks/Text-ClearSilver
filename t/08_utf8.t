@@ -7,23 +7,30 @@ use SelectSaver;
 use Text::ClearSilver;
 use utf8;
 
-my $tcs = Text::ClearSilver->new();
+my $tcs = Text::ClearSilver->new(encoding => 'utf8');
 
 my $template = <<"END";
-"<?cs var:camel ?>" means "camel" in Japanese Kanji
+"<?cs var:ja ?>" means "<?cs var:en ?>" in Japanese Kanji
 END
 
 my $out;
-$tcs->process(\$template, { camel => "\x{99f1}\x{99dd}" }, \$out);
+my %var = (ja => "駱駝", en => 'camel');
 
-{
-    local $TODO = "output should be utf8-flagged";
+undef $out;
+$tcs->process(\$template, \%var, \$out);
+is $out, qq{"駱駝" means "camel" in Japanese Kanji\n}, "encoding => 'utf8'";
 
-    ok utf8::is_utf8($out), "fill in utf8-flagged strings";
+undef $out;
+$tcs->process(\$template, \%var, \$out, encoding => 'bytes');
+isnt $out, qq{"駱駝" means "camel" in Japanese Kanji\n}, "encoding => 'bytes' breaks the output";
 
-}
+undef $out;
+$tcs->process('camel.tcs', \%var, \$out, load_path => [qw(t/data)]);
+is $out, qq{"駱駝"は英語で"camel"といいます。\n}, "encoding => 'utf8'";
 
-utf8::decode($out) if !utf8::is_utf8($out);
-is $out, qq{"\x{99f1}\x{99dd}" means "camel" in Japanese Kanji\n};
+undef $out;
+$tcs->process('camel.tcs', \%var, \$out, load_path => [qw(t/data)], encoding => 'bytes');
+isnt $out, qq{"駱駝"は英語で"camel"といいます。\n}, "encoding => 'bytes' breaks the output";
+
 
 done_testing;

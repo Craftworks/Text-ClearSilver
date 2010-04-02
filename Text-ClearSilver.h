@@ -50,7 +50,7 @@ tcs_parse_sv(pTHX_ CSPARSE* const parse, SV* const sv);
 HDF*
 tcs_new_hdf(pTHX_ SV* const sv);
 void
-tcs_hdf_add(pTHX_ HDF* const hdf, SV* const sv);
+tcs_hdf_add(pTHX_ HDF* const hdf, SV* const sv, bool const utf8);
 
 
 /* CS */

@@ -47,6 +47,11 @@ This document describes Text::ClearSilver version v0.10.5.1.
 
     $cs->process(\q{<?cs var:ucfirst(foo) ?>}, \%vars); # => Bar
 
+    # with encodings
+    $cs->process(\q{<?cs var:foo ?>}, \%vars, \my $out,
+        encoding => 'utf8', # may be 'utf8' or 'bytes'
+    );
+
 =head1 DESCRIPTION
 
 Text::ClearSilver is a Perl binding to the B<ClearSilver> template engine.

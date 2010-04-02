@@ -52,7 +52,8 @@ tcs_cmp(const void* const in_a, const void* const in_b) {
 }
 
 static void
-tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen) {
+tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen, bool const utf8) {
+    SvGETMAGIC(sv);
     if(SvROK(sv)){
         SV** seen_key;
         SV* const rv = SvRV(sv);
@@ -96,7 +97,7 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen) 
                     SV** const svp = av_fetch(av, i, FALSE);
                     if(svp){
                         sv_catpvf(key, "%d", (int)i);
-                        tcs_hdf_walk(aTHX_ hdf, key, *svp, seen);
+                        tcs_hdf_walk(aTHX_ hdf, key, *svp, seen, utf8);
                         SvCUR_set(key, pos); /* reset key */
                         *SvEND(key) = '\0';
                     }
@@ -111,7 +112,7 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen) 
                 hv_iterinit(hv);
                 while((valsv = hv_iternextsv(hv, &keypv, &keylen))){
                     sv_catpvn(key, keypv, keylen);
-                    tcs_hdf_walk(aTHX_ hdf, key, valsv, seen);
+                    tcs_hdf_walk(aTHX_ hdf, key, valsv, seen, utf8);
                     SvCUR_set(key, pos);
                     *SvEND(key) = '\0';
                 }
@@ -131,13 +132,45 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen) 
 
     set_sv:
     if(SvOK(sv)) {
-        CHECK_ERR( hdf_set_value(hdf, SvPV_nolen_const(key), SvPV_nolen_const(sv)) );
+        NEOERR* err;
+        /* see also Perl_do_printf() in doop.c */
+        if( (SvTYPE(sv) & SVf_OK) == SVf_IOK  && PERL_ABS(SvIVX(sv)) <= PERL_LONG_MAX ) {
+            err = hdf_set_int_value(hdf, SvPV_nolen_const(key), (long)SvIVX(sv));
+        }
+        else if(utf8){ /* ensure template variables are utf8-encoded bytes */
+            STRLEN keylen;
+            STRLEN vallen;
+            const char* keypv = SvPV_const(key, keylen);
+            const char* valpv = SvPV_const(sv,  vallen);
+            bool keypv_allocated = FALSE;
+            bool valpv_allocated = FALSE;
+
+            if(!SvUTF8(key)){
+                keypv           = (const char*)bytes_to_utf8((const U8*)keypv, &keylen);
+                keypv_allocated = TRUE;
+            }
+
+            if(!SvUTF8(sv)){
+                valpv           = (const char*)bytes_to_utf8((const U8*)valpv, &vallen);
+                valpv_allocated = TRUE;
+             }
+
+             err = hdf_set_value(hdf, keypv, valpv);
+
+             if(keypv_allocated) Safefree(keypv);
+             if(valpv_allocated) Safefree(valpv);
+        }
+        else {
+            err = hdf_set_value(hdf, SvPV_nolen_const(key), SvPV_nolen_const(sv));
+        }
+
+        CHECK_ERR(err);
     }
     /* warn("set %"SVf"=%"SVf"", key, sv); // */
 }
 
 void
-tcs_hdf_add(pTHX_ HDF* const hdf, SV* const sv) {
+tcs_hdf_add(pTHX_ HDF* const hdf, SV* const sv, bool const utf8) {
     assert(sv);
     SvGETMAGIC(sv);
 
@@ -152,7 +185,7 @@ tcs_hdf_add(pTHX_ HDF* const hdf, SV* const sv) {
             sv_2mortal(key);
             sv_setpvs(key, "");
 
-            tcs_hdf_walk(aTHX_ hdf, key, sv, seen);
+            tcs_hdf_walk(aTHX_ hdf, key, sv, seen, utf8);
         }
     }
     else if(SvOK(sv)){
@@ -167,7 +200,7 @@ tcs_new_hdf(pTHX_ SV* const sv) {
     CHECK_ERR( hdf_init(&hdf) );
 
     if(sv){
-        tcs_hdf_add(aTHX_ hdf, sv);
+        tcs_hdf_add(aTHX_ hdf, sv, FALSE);
     }
 
     return hdf;
