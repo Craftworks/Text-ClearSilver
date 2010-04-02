@@ -1,4 +1,5 @@
 benchmark/cs_ht.pl
+benchmark/cs_tt_mt_ht.pl
 benchmark/data/var.hdf
 benchmark/data/var.pl
 benchmark/data_test.pl
@@ -8,6 +9,7 @@ benchmark/simple.pl
 benchmark/template/index.cs
 benchmark/template/simple.cs
 benchmark/template/simple.ht
+benchmark/utf8.pl
 Changes
 cs/acconfig.h
 cs/aclocal.m4
@@ -453,6 +455,7 @@ t/08_utf8.t
 t/data/basic.gold
 t/data/basic.hdf
 t/data/basic.tcs
+t/data/camel.tcs
 Text-ClearSilver.h
 tool/build_cs.pl
 tool/get_cs.pl
