@@ -415,6 +415,9 @@ tcs_set_config(pTHX_ SV* const self, HV* const hv, HDF* const hdf, SV* const key
             }
             (void)hv_stores(hv, "utf8", newSViv(utf8));
         }
+        else if(strEQ(keypv, "input_layer")){
+            (void)hv_stores(hv, "input_layer", newSVsv(val));
+        }
         else if(strEQ(keypv, "dataset")) {
             tcs_hdf_add(aTHX_ hdf, val, tcs_is_utf8(aTHX_ self));
         }

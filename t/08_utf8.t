@@ -29,6 +29,10 @@ $tcs->process('camel.tcs', \%var, \$out, load_path => [qw(t/data)]);
 is $out, qq{"駱駝"は英語で"camel"といいます。\n}, "encoding => 'utf8'";
 
 undef $out;
+$tcs->process('camel.tcs', \%var, \$out, load_path => [qw(t/data)], input_layer => ":utf8");
+is $out, qq{"駱駝"は英語で"camel"といいます。\n}, "encoding => 'utf8'";
+
+undef $out;
 $tcs->process('camel.tcs', \%var, \$out, load_path => [qw(t/data)], encoding => 'bytes');
 isnt $out, qq{"駱駝"は英語で"camel"といいます。\n}, "encoding => 'bytes' breaks the output";
 
