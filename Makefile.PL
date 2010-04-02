@@ -60,7 +60,7 @@ clean_files "$cs_dir/*/*$Config{_o}";
 
 clean_files qw(
     Text-ClearSilver-* *.stackdump
-    *.gcda *.gcno *.gcov
+    xs/*.gcda xs/*.gcno xs/*.gcov
     nytprof *.out
     cover_db
 );
