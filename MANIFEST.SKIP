@@ -81,5 +81,3 @@ xs/.+\.c
 \bconfig\.status$
 \bMakefile\.depends$
 \brules\.mk$
-
-^cs/

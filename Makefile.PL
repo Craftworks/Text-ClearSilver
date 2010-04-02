@@ -28,11 +28,6 @@ test_requires 'Test::More' => 0.88; # done_testing()
 test_requires 'Test::Requires';
 
 # must not 'ClearSilver' nor 'clearsilver', which confuses EU::MM
-
-configure_requires 'LWP';
-configure_requires 'Archive::Tar';
-configure_requires 'Text::Patch';
-
 my $cs_dir = 'cs';
 
 unless(grep { $_ eq '--no-build-cs' } @ARGV){
@@ -44,6 +39,7 @@ unless(grep { $_ eq '--no-build-cs' } @ARGV){
 }
 
 cc_src_paths qw(xs);
+
 
 cc_include_paths $cs_dir, map{ "$cs_dir/$_" } qw(util cgi cs);
 
