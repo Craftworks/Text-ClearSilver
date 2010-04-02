@@ -112,7 +112,7 @@ CODE:
     dXSTARG;
     NEOERR* err;
     if(ofp) {
-        sv_setsv(TARG, &PL_sv_undef);
+        sv_setiv(TARG, TRUE);
         err = cs_render(cs, ofp, tcs_output_to_io);
     }
     else {
