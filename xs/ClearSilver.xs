@@ -287,7 +287,7 @@ tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
     }
 
     {
-        dSP; dMARK; dORIGMARK;
+        dSP; dMARK;
         I32 const items  = SP - MARK;
 
         if(items < 1){
@@ -305,11 +305,11 @@ tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
 
             result->op_type = CS_TYPE_STRING;
             result->s       = (char*)malloc(len);
-            result->alloc    = TRUE;
+            result->alloc   = TRUE;
             Copy(pv, result->s, len, char);
         }
 
-        SP = ORIGMARK;
+        SP = MARK;
         PUTBACK;
     }
 
