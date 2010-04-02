@@ -650,7 +650,7 @@ CODE:
     XCPT_TRY_START {
         HV* const hv = tcs_deref_hv(aTHX_ self);
         const char* input_layer;
-         SV** svp;
+        SV** svp;
 
         CHECK_ERR( hdf_init(&hdf) );
 
