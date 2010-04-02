@@ -140,7 +140,7 @@ HDF*
 tcs_var_lookup_obj(CSPARSE* parse, const char* name);
 
 static NEOERR*
-tcs_push_args(pTHX_ CSPARSE* const parse, CSARG* args) {
+tcs_push_args(pTHX_ CSPARSE* const parse, CSARG* args, const bool utf8) {
     dSP;
 
     PUSHMARK(SP);
@@ -166,6 +166,9 @@ tcs_push_args(pTHX_ CSPARSE* const parse, CSARG* args) {
         case CS_TYPE_STRING:
             assert(val.s);
             sv_setpv(sv, val.s);
+            if(utf8) {
+                sv_utf8_decode(sv);
+            }
             break;
 
         case CS_TYPE_VAR:
@@ -173,6 +176,9 @@ tcs_push_args(pTHX_ CSPARSE* const parse, CSARG* args) {
             str = tcs_var_lookup(parse, val.s);
             if(str) {
                 sv_setpv(sv, str);
+                if(utf8) {
+                    sv_utf8_decode(sv);
+                }
             }
             else { /* HDF node */
                 HDF* const hdf = tcs_var_lookup_obj(parse, val.s);
@@ -227,7 +233,7 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* const 
     ENTER;
     SAVETMPS;
 
-    err = tcs_push_args(aTHX_ parse, args); /* PUSHMARK & PUSH & PUTBACK */
+    err = tcs_push_args(aTHX_ parse, args, MY_CXT.utf8); /* PUSHMARK & PUSH & PUTBACK */
     if(err != STATUS_OK) {
         err = nerr_pass(err);
         goto cleanup;
@@ -273,6 +279,7 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* const 
 static NEOERR*
 tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, CSARG* const result) {
     dTHX;
+    dMY_CXT;
     NEOERR* err;
 
     PERL_UNUSED_ARG(csf);
@@ -280,7 +287,7 @@ tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, 
     ENTER;
     SAVETMPS;
 
-    err = tcs_push_args(aTHX_ parse, args); /* PUSHMARK & PUSH & PUTBACK */
+    err = tcs_push_args(aTHX_ parse, args, MY_CXT.utf8); /* PUSHMARK & PUSH & PUTBACK */
     if(err != STATUS_OK) {
         err = nerr_pass(err);
         goto cleanup;
@@ -618,6 +625,7 @@ void
 process(SV* self, SV* src, SV* vars, SV* volatile dest = DEFAULT_OUT, ...)
 CODE:
 {
+    dMY_CXT;
     dXCPT;
     CSPARSE*  cs         = NULL;
     HDF*     hdf         = NULL;
@@ -625,7 +633,6 @@ CODE:
     bool need_ofp_close  = FALSE;
     PerlIO* volatile ifp = NULL;
     PerlIO* volatile ofp = NULL;
-    bool utf8            = FALSE;
 
     if(!( SvROK(self) && SvOBJECT(SvRV(self)) )){
         croak("Cannot %s->process as a class method", "Text::ClearSilver");
@@ -634,8 +641,10 @@ CODE:
     SvGETMAGIC(src);
     SvGETMAGIC(dest);
 
+    SAVEBOOL(MY_CXT.utf8);
+    MY_CXT.utf8 = FALSE;
+
     XCPT_TRY_START {
-        dMY_CXT;
         HV* const hv = tcs_deref_hv(aTHX_ self);
         const char* input_layer;
          SV** svp;
@@ -649,7 +658,7 @@ CODE:
             ofp = tcs_sv2io(aTHX_ dest, "w", O_WRONLY|O_CREAT|O_TRUNC, &need_ofp_close);
         }
 
-        utf8 = tcs_is_utf8(aTHX_ self);
+        MY_CXT.utf8 = tcs_is_utf8(aTHX_ self);
 
         svp = NULL;
         if(items > 4){
@@ -659,7 +668,7 @@ CODE:
 
             svp = hv_fetchs(local_hv, "utf8", FALSE);
             if(svp) {
-                utf8 = sv_true(*svp);
+                MY_CXT.utf8 = sv_true(*svp);
             }
 
             svp = hv_fetchs(local_hv, "input_layer", FALSE);
@@ -671,14 +680,14 @@ CODE:
         if(svp) {
             input_layer = SvPV_nolen_const(*svp);
         }
-        else if(utf8) {
+        else if(MY_CXT.utf8) {
             input_layer = ":utf8";
         }
         else {
             input_layer = NULL;
         }
 
-        tcs_hdf_add(aTHX_ hdf, vars, utf8);
+        tcs_hdf_add(aTHX_ hdf, vars, MY_CXT.utf8);
 
         CHECK_ERR( cs_init(&cs, hdf) );
 
@@ -703,14 +712,14 @@ CODE:
 
         /* render */
         if(ofp) {
-            if(utf8 && !PerlIO_isutf8(ofp)) {
+            if(MY_CXT.utf8 && !PerlIO_isutf8(ofp)) {
                 PerlIO_binmode(aTHX_ ofp, '>', O_TEXT, ":utf8");
             }
             CHECK_ERR( cs_render(cs, ofp, tcs_output_to_io) );
         }
         else {
             sv_setpvs(SvRV(dest), "");
-            if(utf8) {
+            if(MY_CXT.utf8) {
                 SvUTF8_on(SvRV(dest));
             }
             CHECK_ERR( cs_render(cs, SvRV(dest), tcs_output_to_sv) );
