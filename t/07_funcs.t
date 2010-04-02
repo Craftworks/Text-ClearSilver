@@ -42,6 +42,15 @@ foreach (1 .. 2) {
     $tcs->process(\'<?cs var:sprintf("%2$d %1$d", #10, #20) ?>', {}, \$out);
     is $out, '20 10', 'builtin sprintf';
 
+    $out = '';
+    $tcs->process(\'<?cs var:lc(add(#10, #20)) ?>', {}, \$out);
+    is $out, 30, 'f(g(x))';
+
+    $out = '';
+    $tcs->process(\'<?cs var:lc(lc("FOO")) ?>', {}, \$out);
+    is $out, "foo", 'f(g(x))';
+
+
     eval {
         $out = '';
         $tcs->process(\'<?cs var:croak(foo) ?>', { foo => "bar" }, \$out);

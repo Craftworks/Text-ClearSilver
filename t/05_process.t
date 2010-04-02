@@ -53,13 +53,25 @@ for(1 .. 10){
 
     my $hdf = Text::ClearSilver::HDF->new();
     $hdf->read_file('t/data/basic.hdf');
-    $tcs->process('basic.tcs', $hdf, \$out, load_path => ['t/data'], TagStart => 'cs');
+    $tcs->process('basic.tcs', $hdf, \$out, { load_path => ['t/data'], TagStart => 'cs' });
 
-    is $out, do{
+    my $gold = do{
         local $/;
         open my $in, '<', 't/data/basic.gold' or die $!;
         scalar <$in>;
-    }, 'load_path';
+    };
+
+    is $out, $gold, 'load_path';
+
+    $tcs->process('basic.tcs', $hdf, '05_process.out', { load_path => ['t/data'], TagStart => 'cs' });
+    $out = do{
+        local $/;
+        open my $in, '<', '05_process.out' or die $!;
+        scalar <$in>;
+    };
+    unlink '05_process.out';
+
+    is $out, $gold, 'output to a file';
 
     if($_ == 5) {
         my $old_cache = $tcs->clear_cache;
