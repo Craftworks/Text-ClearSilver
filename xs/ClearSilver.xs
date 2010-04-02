@@ -254,7 +254,7 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* const 
         goto cleanup;
     }
 
-    if(!((SvTYPE(sv) & SVf_OK) == SVf_IOK && PERL_ABS(SvIVX(retval)) <= PERL_LONG_MAX)) {
+    if(!((SvTYPE(retval) & SVf_OK) == SVf_IOK && PERL_ABS(SvIVX(retval)) <= PERL_LONG_MAX)) {
         STRLEN len;
         const char* const pv = SvPV_const(retval, len);
         len++; /* '\0' */
