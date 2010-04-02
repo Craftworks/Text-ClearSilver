@@ -53,4 +53,19 @@ undef $out;
 $tcs->process(\q{<?cs var:is_utf8(foo) ?>}, { foo => "駱駝" }, \$out, encoding => "bytes");
 ok !$out, 'function arguments are not utf8';
 
+$tcs->register_function( 'string.substr' => sub {
+    if(@_ == 2){
+        return substr $_[0], $_[1];
+    }
+    elsif(@_ == 3){
+        return substr $_[0], $_[1], $_[2];
+    }
+    else {
+        die "wrong number of arguments for substr";
+    }
+} );
+
+$tcs->process(\q{<?cs var:string.substr("foo ほげ bar", 0, 5) ?>}, {}, \$out);
+is $out, "foo ほ", "can define substr()";
+
 done_testing;
