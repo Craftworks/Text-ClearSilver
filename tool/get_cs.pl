@@ -5,7 +5,7 @@
 use strict;
 use Fatal qw(open close);
 use LWP::Simple qw(mirror);
-use File::Path qw(remove_tree);
+use File::Path qw(rmtree);
 use Archive::Tar;
 use File::Find qw(find);
 use Text::Patch qw(patch);
@@ -24,7 +24,7 @@ mirror(
 print "extracting from $distfile ...\n";
 Archive::Tar->extract_archive($distfile);
 
-remove_tree $cs_dir;
+rmtree $cs_dir;
 rename "clearsilver-$version" => $cs_dir;
 
 my @patches;
