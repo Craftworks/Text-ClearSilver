@@ -55,6 +55,18 @@ foreach (1 .. 2) {
     };
     like $@, qr/Too few arguments for sprintf/;
     is $out, '';
+
+    eval {
+        $tcs->register_function(_ => sub {});
+        $tcs->process(\'', {}, \$out);
+    };
+    is $@, '', "_() is not registered";
+
+    eval {
+        $tcs->register_function(len => sub{});
+        $tcs->process(\'', {}, \$out);
+    };
+    like $@, qr/\b DuplicateError \b/xms, 'Cannot redefine builtins';
 }
 
 done_testing;

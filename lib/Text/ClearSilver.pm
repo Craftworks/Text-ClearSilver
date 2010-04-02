@@ -155,11 +155,6 @@ otherwise returns -1.
 
 Returns the length of the string expression.
 
-=item C<_(expr)>
-
-Only available if the system supports gettext(3), returns the translated
-version of the string expression as returned by gettext().
-
 =item C<html_escape(expr)>
 
 Tries HTML escapes to the string expression. This converts characters such as

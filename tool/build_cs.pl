@@ -14,7 +14,7 @@ my @configure_args = qw(
     --disable-ruby
     --disable-java
     --disable-csharp
-    --enable-gettext
+    --disable-gettext
 );
 
 chdir $cs_dir;
