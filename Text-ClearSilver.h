@@ -13,8 +13,10 @@
 
 #include "ppport.h"
 
-/* Need raw malloc() that must be what ClearSilver uses */
+/* Need raw malloc(3) that must be what ClearSilver uses */
 #undef malloc
+#undef strdup
+#undef strndup
 
 #include "ClearSilver.h"
 
