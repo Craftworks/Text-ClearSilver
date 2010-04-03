@@ -6,5 +6,10 @@
 <tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
 <tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
 <tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
+<tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
+<tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
+<tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
+<tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
+<tmpl_if name=hoge> <tmpl_var name=fuga> </tmpl_if>
 </body>
 </html>

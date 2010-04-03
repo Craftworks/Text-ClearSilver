@@ -21,16 +21,14 @@ $vars->{hdf}{loadpaths} = \@load_path;
 
 my $mst_in  = "benchmark/template/simple.mst";
 my $mst_bin = "benchmark/template/simple.mst.out";
+MobaSiF::Template::Compiler::compile($mst_in, $mst_bin);
+
 if(0){
     my $tcs = Text::ClearSilver->new();
     print "T::CS\n";
     $tcs->process('simple.cs', $vars);
 
     print "MobaSiF::T\n";
-    $MobaSiF::Template::DEVELOP = 1;
-
-    MobaSiF::Template::Compiler::compile($mst_in, $mst_bin);
-
     print MobaSiF::Template::insert($mst_bin, $vars);
     exit;
 }
