@@ -9,11 +9,13 @@ use Benchmark ':all';
 
 my $cs = Text::ClearSilver->new(VarEscapeMode => 'html');
 
-my $tt_tmpl  = q{ [% foo  %] }            x 10;
-my $mst_tmpl = q{ $= h:foo $ }            x 10;
-my $cs_tmpl  = q{ <?cs var:foo ?> }       x 10;
-my $mt_tmpl  = q{ <?=  $_[0]->{foo} ?> }  x 10;
-my $ht_tmpl  = q{ <tmpl_var name="foo"> } x 10;
+my $n = shift(@ARGV) || 100;
+
+my $tt_tmpl  = q{ [% foo  %] }            x $n;
+my $mst_tmpl = q{ $= h:foo $ }            x $n;
+my $cs_tmpl  = q{ <?cs var:foo ?> }       x $n;
+my $mt_tmpl  = q{ <?=  $_[0]->{foo} ?> }  x $n;
+my $ht_tmpl  = q{ <tmpl_var name="foo"> } x $n;
 
 my $mt = build_mt($mt_tmpl);
 my $ht = HTML::Template::Pro->new(
