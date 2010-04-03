@@ -2,7 +2,6 @@
 
 use strict;
 use Test::More;
-use SelectSaver;
 
 use Text::ClearSilver;
 use Carp ();

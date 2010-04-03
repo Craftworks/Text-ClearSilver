@@ -3,8 +3,6 @@ use strict;
 use Benchmark qw(:all);
 
 use Text::ClearSilver;
-use ClearSilver;
-use Data::ClearSilver::HDF;
 
 print "Text::ClearSilver/$Text::ClearSilver::VERSION\n";
 
