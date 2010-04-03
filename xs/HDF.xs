@@ -6,7 +6,9 @@
     See lib/Text/ClearSilver.pm for details.
 */
 
-
+#define NEED_pv_pretty
+#define NEED_pv_escape
+#define NEED_my_snprintf
 #include "Text-ClearSilver.h"
 
 
