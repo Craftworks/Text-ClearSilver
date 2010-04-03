@@ -177,6 +177,15 @@ Tries JavaScript escapes to the string expression into valid data for placement
 into a JavaScript string. This converts characters such as E<quot>, ', and E<92> into their
 JavaScript string safe equivalents E<92>E<quot>,  E<92>', and  E<92>E<92>.
 
+=item C<text_html(expr)>
+
+Returns an HTML fragment formatted from a plain text.
+
+=item C<strip_html(expr)>
+
+Returns a plain text from an HTML text, removing HTML tags and converting
+entities into plain characters.
+
 =item C<sprintf(fmt, ...)>
 
 Returns a string formatted by Perl builtin C<sprintf> function.
