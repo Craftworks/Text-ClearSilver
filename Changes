@@ -1,5 +1,10 @@
 Revision history for Perl extension Text::ClearSilver
 
+0.10.5.x
+    - Support encoding => "utf8" (gfx)
+    - Remove gettext (_ function); use register_function() if needed (gfx)
+    - More compatibility with ClearSilver.pm (gfx)
+
 0.10.5.1 Tue Mar 30 16:26:31 2010
     - Fix a packaging issue (gfx)
     - Fix a pre-5.10 issue (gfx)

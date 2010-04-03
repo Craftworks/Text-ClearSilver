@@ -2,10 +2,11 @@
 
 use strict;
 use Test::More;
-use SelectSaver;
 
 use Text::ClearSilver;
 use utf8;
+
+use Encode qw(encode);
 
 my $tcs = Text::ClearSilver->new(encoding => 'utf8');
 
@@ -71,5 +72,23 @@ $tcs->register_function( 'string.substr' => sub {
 
 $tcs->process(\q{<?cs var:string.substr("foo ほげ bar", 0, 5) ?>}, {}, \$out);
 is $out, "foo ほ", "can define substr()";
+
+my $non_utf8 = encode Shift_JIS => "ラクダ";
+eval {
+    $tcs->process(\'', { camel => $non_utf8 }, \my $out);
+};
+like $@, qr/value.+not utf8/, $@;
+
+eval {
+    $tcs->process(\'', { $non_utf8 => "camel" }, \my $out);
+};
+like $@, qr/key.+not utf8/, $@;
+
+my $utf8 = encode utf_8 => "ラクダ";
+eval {
+    $tcs->process(\'', { camel => $utf8 }, \my $out);
+};
+is $@, '', 'utf8 encoded bytes';
+
 
 done_testing;

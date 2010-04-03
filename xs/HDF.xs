@@ -52,6 +52,12 @@ tcs_cmp(const void* const in_a, const void* const in_b) {
 }
 
 static void
+tcs_croak_with_pv(pTHX_ const char* const name, const char* const pv, STRLEN const pvlen) {
+    croak("The %s (%s) is not utf8-flagged nor utf8-encoded", name,
+        pv_pretty(sv_newmortal(), pv, pvlen, 128, NULL, NULL, PERL_PV_PRETTY_DUMP));
+}
+
+static void
 tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen, bool const utf8) {
     SvGETMAGIC(sv);
     if(SvROK(sv)){
@@ -137,33 +143,22 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen, 
         if( (SvTYPE(sv) & SVf_OK) == SVf_IOK  && PERL_ABS(SvIVX(sv)) <= PERL_LONG_MAX ) {
             err = hdf_set_int_value(hdf, SvPV_nolen_const(key), (long)SvIVX(sv));
         }
-#if 0
-        else if(utf8){ /* ensure template variables are utf8-encoded bytes */
+        else {
             STRLEN keylen;
             STRLEN vallen;
-            const char* keypv = SvPV_const(key, keylen);
-            const char* valpv = SvPV_const(sv,  vallen);
-            bool keypv_allocated = FALSE;
-            bool valpv_allocated = FALSE;
+            const char* const keypv = SvPV_const(key, keylen);
+            const char* const valpv = SvPV_const(sv,  vallen);
 
-            if(!SvUTF8(key)){
-                keypv           = (const char*)bytes_to_utf8((const U8*)keypv, &keylen);
-                keypv_allocated = TRUE;
+            if(utf8) {
+                if(!is_utf8_string((const U8*)keypv, keylen)) {
+                    tcs_croak_with_pv(aTHX_ "key", keypv, keylen);
+                }
+                if(!is_utf8_string((const U8*)valpv, vallen)) {
+                    tcs_croak_with_pv(aTHX_ "value", valpv, vallen);
+                }
             }
 
-            if(!SvUTF8(sv)){
-                valpv           = (const char*)bytes_to_utf8((const U8*)valpv, &vallen);
-                valpv_allocated = TRUE;
-             }
-
-             err = hdf_set_value(hdf, keypv, valpv);
-
-             if(keypv_allocated) Safefree(keypv);
-             if(valpv_allocated) Safefree(valpv);
-        }
-#endif
-        else {
-            err = hdf_set_value(hdf, SvPV_nolen_const(key), SvPV_nolen_const(sv));
+            err = hdf_set_value(hdf, keypv, valpv);
         }
 
         CHECK_ERR(err);
