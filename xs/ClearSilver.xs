@@ -636,6 +636,8 @@ CODE:
     bool need_ofp_close  = FALSE;
     PerlIO* volatile ifp = NULL;
     PerlIO* volatile ofp = NULL;
+    bool save_utf8;
+    const char* save_input_layer;
 
     if(!( SvROK(self) && SvOBJECT(SvRV(self)) )){
         croak("Cannot %s->process as a class method", "Text::ClearSilver");
@@ -644,8 +646,11 @@ CODE:
     SvGETMAGIC(src);
     SvGETMAGIC(dest);
 
-    SAVEBOOL(MY_CXT.utf8);
+    save_utf8   = MY_CXT.utf8;
     MY_CXT.utf8 = FALSE;
+
+    save_input_layer   = MY_CXT.input_layer;
+    MY_CXT.input_layer = NULL;
 
     XCPT_TRY_START {
         HV* const hv = tcs_deref_hv(aTHX_ self);
@@ -699,7 +704,6 @@ CODE:
 
         cs_register_fileload(cs, cs, tcs_fileload);
 
-        SAVEVPTR(MY_CXT.input_layer);
         MY_CXT.input_layer = input_layer;
 
         /* parse CS template */
@@ -707,7 +711,7 @@ CODE:
             if(SvTYPE(SvRV(src)) > SVt_PVMG){
                 croak("Source must be a scalar reference or a filename, not %"SVf, src);
             }
-            CHECK_ERR(tcs_parse_sv(aTHX_ cs, SvRV(src)));
+            CHECK_ERR( tcs_parse_sv(aTHX_ cs, SvRV(src)) );
         }
         else {
             CHECK_ERR( cs_parse_file(cs, SvPV_nolen_const(src)) );
@@ -729,6 +733,9 @@ CODE:
         }
     }
     XCPT_TRY_END
+
+    MY_CXT.utf8        = save_utf8;
+    MY_CXT.input_layer = save_input_layer;
 
     if(need_ifp_close) PerlIO_close(ifp);
     if(need_ofp_close) PerlIO_close(ofp);
