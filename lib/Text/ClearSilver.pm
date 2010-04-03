@@ -66,7 +66,7 @@ Creates a Text::ClearSilver processor.
 
 Configuration parameters may be:
 
-=over 4
+=over
 
 =item C<< VarEscapeMode => ( 'none' | 'html' | 'js' | 'url' ) >>
 
@@ -113,7 +113,7 @@ and you cannot re-define them.
 
 Builtin functions are as follows:
 
-=over 4
+=over
 
 =item C<subcount(var)>
 
@@ -211,7 +211,7 @@ C<< VarEscapeMode => 'html' >> changes the escaping mode temporally.
 
 =head3 C<< $tcs->clear_cache :HASH >>
 
-Clears the global file cache, and returns the old cache.
+Clears the global file cache, and returns the old one.
 
 =head2 The Text::ClearSilver::HDF class
 
@@ -225,7 +225,7 @@ may be a reference to data structure or an HDF string.
 
 Notes:
 
-=over 4
+=over
 
 =item *
 
@@ -363,7 +363,7 @@ Here are ClearSilver keywords.
 
 See L<http://www.clearsilver.net/docs/man_templates.hdf> for details.
 
-=over 4
+=over
 
 =item C<name>
 
@@ -404,6 +404,50 @@ See L<http://www.clearsilver.net/docs/man_templates.hdf> for details.
 =item C<escape>
 
 =back
+
+=head2 Examples
+
+=head3 Loops
+
+Given a dataset:
+
+    my %vars = (
+        Data => [qw(foo bar baz)],
+    );
+
+and a template:
+
+    <?cs each:item = Data ?>
+    <?cs if:first(item) ?>first<?cs /if ?>
+    <?cs var:name(item) ?>: <?cs var:item(name) ?>
+    <?cs if:last(item) ?>last<?cs /if ?>
+    <?cs /each ?>
+
+makes:
+
+    first
+    0: foo
+    1: bar
+    2: baz
+    last
+
+with some white spaces.
+
+=head3 Macros
+
+Given a dataset:
+
+    <?cs def:add(x, y) ?>[<?cs var:#x+#y ?>]<?cs /def ?>
+    <?cs def:cat(x, y) ?>[<?cs var:x+y ?>]<?cs /def?>
+    10 + 20 = <?cs call add(10, 20) ?> (as number)
+    15 + 25 = <?cs call cat(15, 25) ?> (as string)
+
+makes:
+
+    10 + 20 = 30 (as number)
+    15 + 25 = 1525 (as string)
+
+with some white spaces.
 
 =head1 DEPENDENCIES
 
