@@ -152,10 +152,10 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen, 
             const char* const valpv = SvPV_const(sv,  vallen);
 
             if(utf8) {
-                if(!is_utf8_string((const U8*)keypv, keylen)) {
+                if(!( SvUTF8(key) || is_utf8_string((const U8*)keypv, keylen) )) {
                     tcs_croak_with_pv(aTHX_ "key", keypv, keylen);
                 }
-                if(!is_utf8_string((const U8*)valpv, vallen)) {
+                if(!( SvUTF8(sv)  || is_utf8_string((const U8*)valpv, vallen) )) {
                     tcs_croak_with_pv(aTHX_ "value", valpv, vallen);
                 }
             }
