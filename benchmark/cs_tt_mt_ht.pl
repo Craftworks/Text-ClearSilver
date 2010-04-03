@@ -5,17 +5,16 @@ use Text::MicroTemplate 'build_mt';
 use HTML::Template::Pro;
 use Benchmark ':all';
 
-my $cs = Text::ClearSilver->new(
-#    VarEscapeMode => 'html',    # html,js,url, or none
-);
+my $cs = Text::ClearSilver->new();
 
-$cs->register_function( ucfirst => sub { ucfirst $_[0] } );
+my $tt_tmpl = q{ [% foo  %] } x 10;
+my $cs_tmpl = q{ <?cs var:foo ?> } x 10;
 
-my $mt = build_mt(q{<?= ucfirst $_[0] ?>});
-my $tt = Template->new();
+my $mt = build_mt(q{ <?=  $_[0] ?> } x 10);
 my $ht = HTML::Template::Pro->new(
-    scalarref => \q{<tmpl_var expr="ucfirst(foo)">},
+    scalarref => \(q{ <tmpl_var name="foo"> } x 10),
 );
+my $tt = Template->new();
 
 printf "%vd %s\n", $^V, $^O;
 foreach my $mod(qw(Template Text::MicroTemplate HTML::Template::Pro Text::ClearSilver)) {
@@ -39,12 +38,12 @@ cmpthese( -1, => {
 );
 
 sub _cs {
-    $cs->process( \q{<?cs var:ucfirst(foo) ?>}, { foo => 'bar' }, \my $out );
+    $cs->process(\$cs_tmpl, { foo => 'bar' }, \my $out );
     $out;
 }
 
 sub _tt {
-    $tt->process(\q{[% foo | ucfirst %]}, {foo => 'bar'}, \my $out) or die;
+    $tt->process(\$tt_tmpl, {foo => 'bar'}, \my $out) or die;
     $out;
 }
 
