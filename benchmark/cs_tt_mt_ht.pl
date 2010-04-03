@@ -1,6 +1,7 @@
 #!perl
 use strict;
 use warnings;
+use Config;
 use Text::ClearSilver;
 use Template;
 use Text::MicroTemplate 'build_mt';
@@ -27,7 +28,7 @@ my $has_mst = eval { require MobaSiF::Template };
 
 my %vars = (foo => 'bar');
 
-printf "%vd %s\n", $^V, $^O;
+printf "%vd on %s\n", $^V, $Config{archname};
 foreach my $mod(qw(Template Text::MicroTemplate
     HTML::Template::Pro Text::ClearSilver),
     $has_mst ? 'MobaSiF::Template' : ()) {
