@@ -70,15 +70,15 @@ Configuration parameters may be:
 
 =item C<< VarEscapeMode => ( 'none' | 'html' | 'js' | 'url' ) >>
 
-Sets variable escaping mode. If it is not C<none>, template variables will be
-automatically escaped. Default to C<none>.
+Sets the default variable escaping mode. If it is not C<none>, template variables
+will be automatically escaped. Default to C<none>.
 
 This is ClearSilver core feature, and a shortcut for
 C<< dataset => { Config => VarEscapeMode => ... } >>.
 
 =item C<< TagStart => $str >>
 
-Sets ClearSilver tag. Default to C<cs>.
+Sets the ClearSilver starting tag. Default to C<cs>.
 
 This is ClearSilver core feature, and a shortcut for
 C<< dataset => { Config => TagStart => ... } >>.
@@ -105,7 +105,7 @@ Returns the dataset that the processor uses in common.
 
 Registers a named function in the TCS processor.
 
-If you set the number of arguments E<gt>= 0, it will be checked at parsing
+If you set the number of arguments C<< >= 0 >>, it will be checked at parsing
 time, rather than runtime.
 
 Note that Text::ClearSilver defines some builtin functions,
@@ -435,7 +435,7 @@ with some white spaces.
 
 =head3 Macros
 
-Given a dataset:
+Given a template:
 
     <?cs def:add(x, y) ?>[<?cs var:#x+#y ?>]<?cs /def ?>
     <?cs def:cat(x, y) ?>[<?cs var:x+y ?>]<?cs /def?>
@@ -448,6 +448,42 @@ makes:
     15 + 25 = 1525 (as string)
 
 with some white spaces.
+
+=head3 Escapes
+
+Given a dataset:
+
+    my %vars = (
+        uri => q{<a href="http://example.com">example.com</a>},
+    );
+
+and a template:
+
+    escape: "none":
+    <?cs escape: "none" ?><?cs var:uri ?><?cs /escape ?>
+
+    escape: "html":
+    <?cs escape: "html" ?><?cs var:uri ?><?cs /escape ?>
+
+    escape: "js":
+    <?cs escape: "js" ?><?cs var:uri ?><?cs /escape ?>
+
+    escape: "url":
+    <?cs escape: "url" ?><?cs var:uri ?><?cs /escape ?>
+
+makes:
+
+    escape: "none":
+    <a href="http://example.com">example.com</a>
+
+    escape: "html":
+    &lt;a href=&quot;http://example.com&quot;&gt;example.com&lt;/a&gt;
+
+    escape: "js":
+    \x3Ca href=\x22http:\x2F\x2Fexample.com\x22\x3Eexample.com\x3C\x2Fa\x3E
+
+    escape: "url":
+    %3Ca+href%3D%22http%3A%2F%2Fexample.com%22%3Eexample.com%3C%2Fa%3E
 
 =head1 DEPENDENCIES
 
@@ -480,6 +516,7 @@ Goro Fuji (gfx) E<lt>gfuji(at)cpan.orgE<gt>
 The ClearSilver template engine is developed by Neotonic Software Corp,
 and Copyright (c) 2003 Brandon Long.
 
+This distribution includes the ClearSilver distribution.
 See L<http://www.clearsilver.net/license.hdf> for ClearSilver Software License.
 
 =head1 LICENSE AND COPYRIGHT
