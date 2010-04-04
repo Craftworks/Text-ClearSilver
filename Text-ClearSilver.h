@@ -86,6 +86,8 @@ typedef struct {
     HV* file_cache;
     const char* input_layer;
     bool utf8;
+
+    bool function_set_is_loaded;
 } my_cxt_t;
 
 my_cxt_t*

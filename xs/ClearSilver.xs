@@ -392,6 +392,71 @@ tcs_is_utf8(pTHX_ SV* const tcs) {
     return svp ? sv_true(*svp) : FALSE;
 }
 
+
+static void
+tcs_register_function(pTHX_ SV* const self, SV* const name, SV* const func, IV const n_args) {
+    SV** const svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "functions", FALSE);
+    HV* hv;
+    SV* pair[2];
+    if(svp) {
+        hv = tcs_deref_hv(aTHX_ *svp);
+    }
+    else {
+        hv = newHV();
+        (void)hv_stores(tcs_deref_hv(aTHX_ self), "functions", newRV_noinc((SV*)hv));
+    }
+
+    pair[0] = newRV_inc((SV*)tcs_sv2cv(aTHX_ func));
+    pair[1] = newSViv(n_args);
+
+    (void)hv_store_ent(hv, name, newRV_noinc((SV*)av_make(2, pair)), 0U);
+}
+static void
+tcs_load_function_set(pTHX_ SV* const self, SV* const val) {
+    dMY_CXT;
+
+    ENTER;
+    SAVETMPS;
+
+    if(!MY_CXT.function_set_is_loaded){
+        require_pv("Text/ClearSilver/FunctionSet.pm");
+        if(sv_true(ERRSV)){
+            croak("ClearSilver: panic: %"SVf, ERRSV);
+        }
+        MY_CXT.function_set_is_loaded = TRUE;
+    }
+
+    SAVESPTR(ERRSV);
+    ERRSV = sv_newmortal();
+    {
+        dSP;
+        HV* set;
+        HE* he;
+
+        PUSHMARK(SP);
+        EXTEND(SP, 2);
+        PUSHs(newSVpvs_flags("Text::ClearSilver::FunctionSet", SVs_TEMP));
+        PUSHs(val);
+        PUTBACK;
+        call_method("load", G_SCALAR | G_EVAL);
+
+        if(sv_true(ERRSV)){
+            croak("ClearSilver: cannot load a function set: %"SVf, ERRSV);
+        }
+
+        SPAGAIN;
+        set = tcs_deref_hv(aTHX_ POPs);
+        PUTBACK;
+
+        hv_iterinit(set);
+        while((he = hv_iternext(set))){
+            tcs_register_function(aTHX_ self, hv_iterkeysv(he), hv_iterval(set, he), -1);
+        }
+    }
+    FREETMPS;
+    LEAVE;
+}
+
 static void
 tcs_set_config(pTHX_ SV* const self, HV* const hv, HDF* const hdf, SV* const key, SV* const val) {
     const char* const keypv = SvPV_nolen_const(key);
@@ -426,6 +491,9 @@ tcs_set_config(pTHX_ SV* const self, HV* const hv, HDF* const hdf, SV* const key
             CHECK_ERR( hdf_get_node(hdf, "hdf.loadpaths", &loadpaths) );
 
             tcs_hdf_add(aTHX_ loadpaths, val, tcs_is_utf8(aTHX_ self));
+        }
+        else if(strEQ(keypv, "function_set")) {
+            tcs_load_function_set(aTHX_ self, val);
         }
         else if(ckWARN(WARN_MISC)) {
             Perl_warner(aTHX_ packWARN(WARN_MISC), "%s: unknown configuration variable '%s'",
@@ -530,6 +598,7 @@ tcs_get_struct_ptr(pTHX_ SV* const arg, const char* const klass,
     return NULL; /* NOT REACHED */
 }
 
+#define register_function(self, name, cb, nargs) tcs_register_function(aTHX_ self, name, cb, nargs)
 
 MODULE = Text::ClearSilver    PACKAGE = Text::ClearSilver
 
@@ -594,24 +663,7 @@ CODE:
 
 void
 register_function(SV* self, SV* name, SV* func, int n_args = -1)
-CODE:
-{
-    SV** const svp = hv_fetchs(tcs_deref_hv(aTHX_ self), "functions", FALSE);
-    HV* hv;
-    SV* pair[2];
-    if(svp) {
-        hv = tcs_deref_hv(aTHX_ *svp);
-    }
-    else {
-        hv = newHV();
-        (void)hv_stores(tcs_deref_hv(aTHX_ self), "functions", newRV_noinc((SV*)hv));
-    }
 
-    pair[0] = newRV_inc((SV*)tcs_sv2cv(aTHX_ func));
-    pair[1] = newSViv(n_args);
-
-    (void)hv_store_ent(hv, name, newRV_noinc((SV*)av_make(2, pair)), 0U);
-}
 
 void
 dataset(SV* self)
