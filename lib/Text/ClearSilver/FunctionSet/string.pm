@@ -3,8 +3,6 @@ use strict;
 use warnings;
 use Text::ClearSilver::FunctionSet qw(usage);
 
-our @CAPR_NOT = qw(Text::ClearSilver::FunctionSet);
-
 sub _function_sprintf {
     my $fmt = shift;
     usage 'sprintf(fmt, ...)' if !defined $fmt;
