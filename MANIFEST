@@ -428,6 +428,7 @@ cs/util/wdb.h
 cs/util/wildmat.c
 cs/util/wildmat.h
 example/dbi.pl
+example/escape.pl
 example/hello.pl
 example/hello.tcs
 example/iter.pl
@@ -442,6 +443,9 @@ inc/Module/Install/WriteAll.pm
 inc/Module/Install/XSUtil.pm
 lib/Text/ClearSilver.pm
 lib/Text/ClearSilver/Compat.pm
+lib/Text/ClearSilver/FunctionSet.pm
+lib/Text/ClearSilver/FunctionSet/html.pm
+lib/Text/ClearSilver/FunctionSet/string.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
@@ -456,7 +460,8 @@ t/04_cs_has_a_hdf.t
 t/05_process.t
 t/06_compat.t
 t/07_funcs.t
-t/08_utf8.t
+t/08_function_set.t
+t/09_utf8.t
 t/data/basic.gold
 t/data/basic.hdf
 t/data/basic.tcs
