@@ -1,8 +1,10 @@
 Revision history for Perl extension Text::ClearSilver
 
-0.10.5.x
-    - Support encoding => "utf8" (gfx)
+0.10.5.2 Sun Apr  4 13:02:02 2010
+    - Support "encoding => 'utf8'" (gfx)
+    - Support "functions => [qw(string html)]" (gfx)
     - Remove gettext (_ function); use register_function() if needed (gfx)
+    - Remove sprintf functio; use functions => 'string' instead (gfx)
     - More compatibility with ClearSilver.pm (gfx)
 
 0.10.5.1 Tue Mar 30 16:26:31 2010
