@@ -4,8 +4,8 @@ use 5.008_001;
 use strict;
 
 
-#use version(); our $VERSION = version->new('0.10.5.2');
-our $VERSION =                              '0.10.5.2'; # workaround ShipIt 0.55
+#use version(); our $VERSION = version->new('0.10.5.3');
+our $VERSION =                              '0.10.5.3'; # workaround ShipIt 0.55
 #                                            ^^^^^^      ClearSilver core version
 #                                                  ^^    Text::ClearSilver version
 
@@ -22,7 +22,7 @@ Text::ClearSilver - Perl interface to the ClearSilver template engine
 
 =head1 VERSION
 
-This document describes Text::ClearSilver version v0.10.5.2.
+This document describes Text::ClearSilver version v0.10.5.3.
 
 =head1 SYNOPSIS
 
