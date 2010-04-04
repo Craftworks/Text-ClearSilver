@@ -36,6 +36,7 @@ This document describes Text::ClearSilver version v0.10.5.1.
         # extended configuratin
         load_path => [qw(/path/to/template)],
         dataset   => { common_foo => 'value' },
+        functions => [qw(string html)],
     );
 
     $cs->register_function( ucfirst => sub{ ucfirst $_[0] } );

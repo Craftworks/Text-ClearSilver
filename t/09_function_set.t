@@ -9,7 +9,7 @@ use Carp ();
 foreach (1 .. 2) {
     note $_;
 
-    my $tcs = Text::ClearSilver->new(function_set => [qw(string html)]);
+    my $tcs = Text::ClearSilver->new(functions => [qw(string html)]);
 
     my $out;
 

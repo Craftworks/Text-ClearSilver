@@ -492,7 +492,7 @@ tcs_set_config(pTHX_ SV* const self, HV* const hv, HDF* const hdf, SV* const key
 
             tcs_hdf_add(aTHX_ loadpaths, val, tcs_is_utf8(aTHX_ self));
         }
-        else if(strEQ(keypv, "function_set")) {
+        else if(strEQ(keypv, "functions")) {
             tcs_load_function_set(aTHX_ self, val);
         }
         else if(ckWARN(WARN_MISC)) {
