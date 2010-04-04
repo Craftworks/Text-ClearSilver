@@ -13,6 +13,22 @@
 
 #include "ppport.h"
 
+#ifndef LIKELY
+#if defined(__GNUC__)
+#define HAS_BUILTIN_EXPECT
+#endif
+
+/* stolen from perl.h, 5.12.0 */
+#ifdef HAS_BUILTIN_EXPECT
+#  define EXPECT(expr,val)                  __builtin_expect(expr,val)
+#else
+#  define EXPECT(expr,val)                  (expr)
+#endif
+
+#define LIKELY(cond)                        EXPECT(cond, 1)
+#define UNLIKELY(cond)                      EXPECT(cond, 0)
+#endif /* ifndef LIKELY */
+
 /* Need raw malloc(3) that must be what ClearSilver uses */
 #undef malloc
 #undef strdup
@@ -31,8 +47,8 @@ typedef CSPARSE* Text__ClearSilver__CS;
 #define cs_DESTROY(p)  cs_destroy(&(p))
 
 #define CHECK_ERR(e) STMT_START{ \
-        NEOERR* check_error_value = (e); \
-        if(check_error_value != STATUS_OK) tcs_throw_error(aTHX_ check_error_value); \
+        NEOERR* const check_error_value = (e); \
+        if(UNLIKELY(check_error_value != STATUS_OK)) tcs_throw_error(aTHX_ check_error_value); \
     }STMT_END
 
 void
