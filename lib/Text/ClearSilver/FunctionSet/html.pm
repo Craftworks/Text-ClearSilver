@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Text::ClearSilver::FunctionSet qw(usage);
 
+our @CAPR_NOT = qw(Text::ClearSilver::FunctionSet);
+
 sub _function_nl2br {
     my($str) = @_;
     usage 'nl2br(expr)' if @_ != 1;

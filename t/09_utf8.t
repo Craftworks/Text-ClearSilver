@@ -8,7 +8,7 @@ use utf8;
 
 use Encode qw(encode);
 
-my $tcs = Text::ClearSilver->new(encoding => 'utf8');
+my $tcs = Text::ClearSilver->new(encoding => 'utf8', functions => 'string');
 
 my $template = <<"END";
 "<?cs var:ja ?>" means "<?cs var:en ?>" in Japanese Kanji

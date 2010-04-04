@@ -276,57 +276,6 @@ tcs_function_wrapper(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* const 
     return err;
 }
 
-static NEOERR*
-tcs_sprintf_function(CSPARSE* const parse, CS_FUNCTION* const csf, CSARG* args, CSARG* const result) {
-    dTHX;
-    dMY_CXT;
-    NEOERR* err;
-
-    PERL_UNUSED_ARG(csf);
-
-    ENTER;
-    SAVETMPS;
-
-    err = tcs_push_args(aTHX_ parse, args, MY_CXT.utf8); /* PUSHMARK & PUSH & PUTBACK */
-    if(err != STATUS_OK) {
-        err = nerr_pass(err);
-        goto cleanup;
-    }
-
-    {
-        dSP; dMARK;
-        I32 const items  = SP - MARK;
-
-        if(items < 1){
-            err = nerr_raise(NERR_ASSERT, "Too few arguments for sprintf()");
-        }
-        else {
-            SV* const retval = sv_newmortal();
-            STRLEN len;
-            const char* pv;
-
-            do_sprintf(retval, items, MARK + 1);
-
-            pv = SvPV_const(retval, len);
-            len++; /* '\0' */
-
-            result->op_type = CS_TYPE_STRING;
-            result->s       = (char*)malloc(len);
-            result->alloc   = TRUE;
-            Copy(pv, result->s, len, char);
-        }
-
-        SP = MARK;
-        PUTBACK;
-    }
-
-    cleanup:
-    FREETMPS;
-    LEAVE;
-
-    return err;
-}
-
 NEOERR*
 tcs_parse_sv(pTHX_ CSPARSE* const parse, SV* const sv) {
     STRLEN str_len;
@@ -579,9 +528,6 @@ tcs_register_funcs(pTHX_ CSPARSE* const cs, HV* const funcs) {
                 SvIVx(*av_fetch(pair, 1, TRUE)), tcs_function_wrapper) );
         }
     }
-
-    /* TCS specific builtins */
-    CHECK_ERR( cs_register_function(cs, "sprintf", -1, tcs_sprintf_function) );
 
     /* functions from cgi_register_strfuncs() */
     CHECK_ERR( cgi_register_strfuncs(cs) );

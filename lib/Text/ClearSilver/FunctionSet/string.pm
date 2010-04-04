@@ -3,6 +3,15 @@ use strict;
 use warnings;
 use Text::ClearSilver::FunctionSet qw(usage);
 
+our @CAPR_NOT = qw(Text::ClearSilver::FunctionSet);
+
+sub _function_sprintf {
+    my $fmt = shift;
+    usage 'sprintf(fmt, ...)' if !defined $fmt;
+
+    return sprintf($fmt, @_);
+}
+
 sub _function_substr {
     if(@_ == 2) {
         return substr($_[0], $_[1]);
@@ -68,6 +77,10 @@ Text::ClearSilver::FunctionSet::seting - A set of functions for strings
 =head1 FUNCTIONS
 
 =over
+
+=item *
+
+C<< sprintf(fmt, ...) >>
 
 =item *
 

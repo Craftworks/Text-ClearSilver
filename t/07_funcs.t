@@ -30,16 +30,8 @@ foreach (1 .. 2) {
     is $out, 44;
 
     $out = '';
-    $tcs->process(\'<?cs var:sprintf("%1$d %2$d", #10, #20) ?>', {}, \$out);
-    is $out, '10 20', 'sprintf';
-
-    $out = '';
     $tcs->process(\'<?cs var:take_node(Foo) ?>', { Foo => { bar => 42 } }, \$out);
     is $out, 42, 'take HDF node';
-
-    $out = '';
-    $tcs->process(\'<?cs var:sprintf("%2$d %1$d", #10, #20) ?>', {}, \$out);
-    is $out, '20 10', 'builtin sprintf';
 
     $out = '';
     $tcs->process(\'<?cs var:lc(add(#10, #20)) ?>', {}, \$out);
@@ -55,13 +47,6 @@ foreach (1 .. 2) {
         $tcs->process(\'<?cs var:croak(foo) ?>', { foo => "bar" }, \$out);
     };
     like $@, qr/\b bar \b/xms, "die in callback";
-    is $out, '';
-
-    eval {
-        $out = '';
-        $tcs->process(\'<?cs var:sprintf() ?>', {}, \$out);
-    };
-    like $@, qr/Too few arguments for sprintf/;
     is $out, '';
 
     eval {

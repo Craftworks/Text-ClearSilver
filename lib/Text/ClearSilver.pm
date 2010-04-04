@@ -187,16 +187,6 @@ Returns an HTML fragment formatted from a plain text.
 Returns a plain text from an HTML text, removing HTML tags and converting
 entities into plain characters.
 
-=item C<sprintf(fmt, ...)>
-
-Returns a string formatted by Perl builtin C<sprintf> function.
-
-For example:
-
-    <?cs var:sprintf("%2$s %1$s", "foo", "bar") ?> # => "bar foo"
-
-See L<perlfunc/sprintf> for details.
-
 =back
 
 =head3 C<< $tcs->process($source, $data, ?$output, %config) :Void >>

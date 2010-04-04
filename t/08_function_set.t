@@ -31,8 +31,22 @@ foreach (1 .. 2) {
     $tcs->process(\q{<?cs var:substr("foo", 1, 1) ?>}, {}, \$out);
     is $out, "o", 'substr';
 
+    $tcs->process(\q{<?cs var:sprintf("%1$d %2$d", #10, #20) ?>}, {}, \$out);
+    is $out, '10 20', 'sprintf';    $out = '';
+
+    $tcs->process(\q{<?cs var:sprintf("%2$s %1$s", #10, #20) ?>}, {}, \$out);
+    is $out, '20 10', 'builtin sprintf';
+
+
     $tcs->process(\qq{<?cs var:nl2br("\n\n") ?>}, {}, \$out);
     is $out, "<br />\n<br />\n", 'nl2br';
+
+    eval {
+        $out = '';
+        $tcs->process(\'<?cs var:sprintf() ?>', {}, \$out);
+    };
+    like $@, qr/\b sprintf \b/xms;
+    is $out, '';
 
 }
 
