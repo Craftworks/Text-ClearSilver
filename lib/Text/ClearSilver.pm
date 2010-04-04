@@ -96,6 +96,17 @@ Sets a dataset which is used in common.
 
 I<$hdf_source> may be references to data or HDF string.
 
+=item C<< functions => \@sets >>
+
+Installs sets of functions.
+
+Currently B<string> (for C<substr>, C<sprintf>, C<lc>, C<uc>, C<lcfirst>,
+C<ucfirst> and C<trim>) and B<html> (for C<nl2br>) are supported.
+
+=item C<< encoding => 'utf8' | 'bytes' >>
+
+Specifies the encoding. Note that C<utf8> works as the C<use utf8> pragma.
+
 =back
 
 =head3 C<< $tcs->dataset :HDF >>
