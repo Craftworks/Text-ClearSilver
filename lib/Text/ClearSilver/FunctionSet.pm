@@ -55,7 +55,7 @@ Text::ClearSilver::FunctionSet - The function set provider for Text::ClearSilver
     use Text::ClearSilver;
 
     my $tcs = Text::ClearSilver->new(
-        function_set => [qw(string xhtml)]
+        functions => [qw(string html)]
     );
 
 =head1 INTERFACE
