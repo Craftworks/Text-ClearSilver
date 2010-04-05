@@ -62,7 +62,7 @@ __END__
 
 =head1 NAME
 
-Text::ClearSilver::FunctionSet::seting - A set of functions for strings
+Text::ClearSilver::FunctionSet::string - A set of functions for strings
 
 =head1 SYNOPSIS
 
