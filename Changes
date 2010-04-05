@@ -1,5 +1,8 @@
 Revision history for Perl extension Text::ClearSilver
 
+0.10.5.3 Mon Apr  5 16:56:45 2010
+    - Fix a typo in the docs (gfx)
+
 0.10.5.2 Sun Apr  4 13:02:02 2010
     - Support "encoding => 'utf8'" (gfx)
     - Support "functions => [qw(string html)]" (gfx)
