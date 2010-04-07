@@ -67,7 +67,8 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
 
             assert(SvIOK(mtime_cache));
             assert(SvPOK(contents_cache));
-            if(st.st_size == SvCUR(contents_cache) && st.st_mtime == SvIVX(mtime_cache)) {
+
+            if(st.st_mtime == SvIVX(mtime_cache)) {
                 *contents = (char*)malloc(st.st_size + extra_bytes);
                 Copy(SvPVX(contents_cache), *contents, st.st_size + 1, char);
                 return STATUS_OK;
@@ -85,7 +86,6 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
     {
         SV* namesv = newSVpvn_flags(filename, filename_len, SVs_TEMP);
         SV* file_buf;
-        SSize_t read_bytes;
         PerlIO* const ifp =  PerlIO_openn(aTHX_
             MY_CXT.input_layer, "r", -1, O_RDONLY, 0, NULL, 1, &namesv);
 
@@ -96,20 +96,22 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
 
         file_buf = sv_2mortal(newSV(st.st_size));
 
-        read_bytes = PerlIO_read(ifp, SvPVX(file_buf), st.st_size);
-        PerlIO_close(ifp);
-        if(read_bytes != st.st_size) {
-            err = nerr_raise(NERR_IO, "Failed to read (read: %ld bytes, expected %ld bytes)",
-                (long)read_bytes, (long)st.st_size);
+        /* local $/ = undef */
+        SAVESPTR(PL_rs);
+        PL_rs = &PL_sv_undef;
+
+        sv_gets(file_buf, ifp, FALSE);
+
+        if(PerlIO_error(ifp)) {
+            PerlIO_close(ifp);
+            err = nerr_raise(NERR_IO, "Failed to gets");
             goto cleanup;
         }
 
-        SvPOK_on(file_buf);
-        SvCUR_set(file_buf, read_bytes);
-        *SvEND(file_buf) = '\0';
+        PerlIO_close(ifp);
 
-        *contents = (char*)malloc(read_bytes + extra_bytes);
-        Copy(SvPVX(file_buf), *contents, read_bytes + 1, char);
+        *contents = (char*)malloc(SvCUR(file_buf) + extra_bytes);
+        Copy(SvPVX(file_buf), *contents, SvCUR(file_buf) + 1, char);
 
         if(MY_CXT.file_cache){
             SV* cache_entry[2]; /* mtime, contents */
