@@ -35,6 +35,13 @@ foreach (1 .. 2){
     $cs->parse_string('<?cs var: foo ?>');
 
     is $cs->render(), 'bar', 'render';
+
+    $hdf = Text::ClearSilver::HDF->new({
+            rows => { widget => { pickup_apps => [1, 2, 3] } },
+            widget => { data => { pickup_apps => { rows => [4, 5, 6]  }} },
+    });
+    is $hdf->get_value("rows.widget.pickup_apps.1"), 2;
+    is $hdf->get_value("widget.data.pickup_apps.rows.1"), 5;
 }
 
 # circular refs
