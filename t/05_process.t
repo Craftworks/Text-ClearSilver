@@ -79,6 +79,10 @@ for(1 .. 10){
         ok ref($old_cache), 'HASH';
         is join(' ', keys %{$old_cache}), 't/data/basic.tcs', 'clear_cache';
     }
+    elsif(($_ % 4) == 0) {
+        my $t = time() - $_;
+        utime $t, $t, 't/data/basic.tcs';
+    }
 }
 
 done_testing;

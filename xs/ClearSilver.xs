@@ -54,7 +54,6 @@ tcs_fileload(void* vcsparse, HDF* const hdf, const char* filename, char** const 
 
     /* check cache */
     if(MY_CXT.file_cache){
-        Stat_t st;
         SV** const svp = hv_fetch(MY_CXT.file_cache, filename, filename_len, FALSE);
 
         if(svp){
