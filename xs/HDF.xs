@@ -244,6 +244,8 @@ hdf_copy(Text::ClearSilver::HDF dest, const char* name, Text::ClearSilver::HDF s
 NEOERR*
 hdf_read_file(Text::ClearSilver::HDF hdf, const char* filename)
 
+NEOERR*
+hdf_read_string(Text::ClearSilver::HDF hdf, const char* str)
 
 #define HDF_DUMP_TYPE_DOTTED  0
 #define HDF_DUMP_TYPE_COMPACT 1
