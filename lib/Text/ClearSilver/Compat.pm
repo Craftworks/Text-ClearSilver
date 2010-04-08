@@ -15,6 +15,7 @@ package Text::ClearSilver::HDF;
 *setValue  = \&set_value;
 *getValue  = \&get_value;
 *readFile  = \&read_file;
+*readString= \&read_string;
 *writeFile = \&write_file;
 *getObj    = \&get_obj;
 *objChild  = \&obj_child;
