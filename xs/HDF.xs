@@ -73,17 +73,7 @@ tcs_hdf_walk(pTHX_ HDF* const hdf, SV* const key, SV* const sv, HV* const seen, 
 
         seen_key = hv_fetch(seen, (const char*)rv, sizeof(rv), FALSE);
         if(seen_key){
-            /* XXX: hdf_set_symlink() cannot deal with cyclic refs?  */
-            /*  hdf_set_symlink(hdf, SvPV_nolen_const(*seen_key), SvPV_nolen_const(key)); */
-
-            /* XXX: hdf_set_copy() cannot deal with cyclic refs? */
-            /* CHECK_ERR(hdf_set_copy(hdf, SvPV_nolen_const(key), SvPV_nolen_const(*seen_key))); */
-
-            /* TODO */
-            if(ckWARN(WARN_MISC)){
-                Perl_warner(aTHX_ packWARN(WARN_MISC),
-                    "Ignore duplicated references (%"SVf" == %"SVf")", *seen_key, key);
-            }
+            hdf_set_symlink(hdf, SvPV_nolen_const(key), SvPV_nolen_const(*seen_key));
             return;
         }
 

@@ -290,7 +290,7 @@ Sets the value of a named node.
 
 Copies a value from one location in the dataset to another.
 
-=head3 B<< $hdf->set_symlink($src_name, $dest_name) :Void >>
+=head3 B<< $hdf->set_symlink($link_name, $existing_name) :Void >>
 
 Sets a part of the dataset to link to another.
 
