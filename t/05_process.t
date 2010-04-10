@@ -73,6 +73,11 @@ for(1 .. 10){
 
     is $out, $gold, 'output to a file';
 
+    eval {
+        Text::ClearSilver->new()->process("no such file.tcs", {});
+    };
+    like $@, qr/\b NotFoundError \b/xms;
+
     if($_ == 5) {
         my $old_cache = $tcs->clear_cache;
 
