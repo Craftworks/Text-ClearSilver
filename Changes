@@ -1,6 +1,6 @@
 Revision history for Perl extension Text::ClearSilver
 
-0.10.5.x
+0.10.5.4 Wed Apr 28 04:11:56 2010
     - Fix a caching problem (gfx)
     - Fix a cyclic ref problem (gfx)
 
