@@ -43,7 +43,7 @@ foreach my $patch(@patches) {
     $source =~ s/\.patch$//;
 
     if(not -f $source) {
-        print "PATCH: $source not found, skipped.\n";
+        warn "PATCH: $source not found, skipped.\n";
     }
 
     my $input = do {

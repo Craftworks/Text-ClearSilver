@@ -9,7 +9,8 @@ Text-ClearSilver-*
 Makefile*
 !Makefile.PL
 *blib
-META.yml
+META.*
+MYMETA.*
 inc/
 *.out
 *.bak
